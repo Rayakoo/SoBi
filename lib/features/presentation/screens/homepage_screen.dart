@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'dart:async';
+import '../provider/auth_provider.dart';
 import '../style/colors.dart';
 import '../style/typography.dart';
 
@@ -16,6 +19,23 @@ class _HomepageScreenState extends State<HomepageScreen> {
   int totalPoint = 0;
   int selectedEmotion = -1; // -1 means no selection
   TextEditingController journalController = TextEditingController();
+
+  // Nama-nama emoticon sesuai urutan
+  final List<String> emotionNames = [
+    'marah',
+    'sedih',
+    'biasa',
+    'senyum',
+    'bahagia_sekali',
+  ];
+
+  // Path emoticon utama (frame pertama)
+  List<String> get emoticonWebpAssets =>
+      List.generate(5, (i) => 'assets/emoji/${emotionNames[i]}.webp');
+
+  // Untuk animasi frame
+  bool isAnimatingEmotion = false;
+  int animFrame = 1;
 
   final List<String> emotionQuestions = [
     'Bagaimana perasaanmu hari ini?',
@@ -33,15 +53,6 @@ class _HomepageScreenState extends State<HomepageScreen> {
     'Sudah menjaga waktu sholat?',
     'Sudah berterima kasih kepada orang tua?',
     'Sudah berusaha sabar hari ini?',
-  ];
-
-  // 5 emoticon SVG asset paths
-  final List<String> emoticonSvgAssets = [
-    'assets/svg/emoticon_1.svg', // point 1
-    'assets/svg/emoticon_2.svg', // point 2
-    'assets/svg/emoticon_3.svg', // point 3
-    'assets/svg/emoticon_4.svg', // point 4
-    'assets/svg/emoticon_5.svg', // point 5
   ];
 
   // Pohon SVG asset paths, index = totalPoint
@@ -98,12 +109,27 @@ class _HomepageScreenState extends State<HomepageScreen> {
 
   bool isFabMenuOpen = false;
 
-  void _onEmotionSelected(int index) {
-    // index: 0..4, point: index+1
+  void _onEmotionSelected(int index) async {
     if (selectedEmotion == -1 && currentQuestion < emotionQuestions.length) {
       setState(() {
-        totalPoint += (index + 1);
         selectedEmotion = index;
+        isAnimatingEmotion = true;
+        animFrame = 1;
+      });
+
+      // 5 frame, 120ms per frame (lebih lambat dan smooth)
+      for (int i = 1; i <= 6; i++) {
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (!mounted) return;
+        setState(() {
+          animFrame = i;
+        });
+      }
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      setState(() {
+        isAnimatingEmotion = false;
+        totalPoint += (index + 1);
         if (currentQuestion < emotionQuestions.length - 1) {
           currentQuestion++;
           selectedEmotion = -1;
@@ -141,13 +167,18 @@ class _HomepageScreenState extends State<HomepageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    // Ambil user profile dari cache, jika tidak ada dan token ada, fetch user dari API
+    if (authProvider.user == null && authProvider.token != null) {
+      authProvider.fetchUser();
+    }
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(screenWidth),
+          _buildHeader(screenWidth, authProvider),
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.zero,
@@ -197,17 +228,16 @@ class _HomepageScreenState extends State<HomepageScreen> {
                         // Emotion Selector (5 emoticon)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: List.generate(emoticonSvgAssets.length, (
-                            index,
-                          ) {
+                          children: List.generate(emotionNames.length, (index) {
                             final isAnswered =
                                 selectedEmotion != -1 ||
-                                currentQuestion ==
+                                (currentQuestion ==
                                         emotionQuestions.length - 1 &&
-                                    selectedEmotion != -1;
+                                    selectedEmotion != -1);
+                            final isSelected = selectedEmotion == index;
                             return GestureDetector(
                               onTap:
-                                  isAnswered
+                                  isAnswered || isAnimatingEmotion
                                       ? null
                                       : () => _onEmotionSelected(index),
                               child: Container(
@@ -217,22 +247,26 @@ class _HomepageScreenState extends State<HomepageScreen> {
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color:
-                                      selectedEmotion == index
+                                      isSelected
                                           ? AppColors.primary_30
                                           : AppColors.default_10,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color:
-                                        selectedEmotion == index
+                                        isSelected
                                             ? AppColors.primary_90
                                             : AppColors.default_30,
                                     width: 2,
                                   ),
                                 ),
-                                child: SvgPicture.asset(
-                                  emoticonSvgAssets[index],
-                                  width: 32,
-                                  height: 32,
+                                child: _EmotionAnimatedImage(
+                                  emotion: emotionNames[index],
+                                  isSelected: isSelected,
+                                  isAnimating: isSelected && isAnimatingEmotion,
+                                  animFrame:
+                                      isSelected && isAnimatingEmotion
+                                          ? animFrame
+                                          : 1,
                                 ),
                               ),
                             );
@@ -333,7 +367,8 @@ class _HomepageScreenState extends State<HomepageScreen> {
     );
   }
 
-  Widget _buildHeader(double screenWidth) {
+  Widget _buildHeader(double screenWidth, AuthProvider authProvider) {
+    final username = authProvider.user?.username ?? '...';
     return Container(
       height: 120,
       width: double.infinity,
@@ -376,7 +411,7 @@ class _HomepageScreenState extends State<HomepageScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'Fatimah Azzahra',
+                        username,
                         style: AppTextStyles.heading_6_bold.copyWith(
                           color: Colors.white,
                         ),
@@ -447,6 +482,131 @@ class _AnimatedFlowerState extends State<_AnimatedFlower>
         fit: BoxFit.contain,
         width: widget.width,
         height: widget.height,
+      ),
+    );
+  }
+}
+
+// Widget untuk menampilkan animasi frame webp + efek scale
+class _EmotionAnimatedImage extends StatefulWidget {
+  final String emotion;
+  final bool isSelected;
+  final bool isAnimating;
+  final int animFrame;
+
+  const _EmotionAnimatedImage({
+    required this.emotion,
+    required this.isSelected,
+    required this.isAnimating,
+    required this.animFrame,
+    super.key,
+  });
+
+  @override
+  State<_EmotionAnimatedImage> createState() => _EmotionAnimatedImageState();
+}
+
+class _EmotionAnimatedImageState extends State<_EmotionAnimatedImage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _scaleAnim = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 1.25,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.25,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 50,
+      ),
+    ]).animate(_scaleController);
+    if (widget.isAnimating) {
+      _scaleController.forward(from: 0);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _EmotionAnimatedImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isAnimating && !oldWidget.isAnimating) {
+      _scaleController.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  double _getScale(int frame) {
+    // Membesar di frame ke-3 (index 3), normal di awal & akhir
+    // Frame: 1 2 3 4 5
+    // Scale: 1.0 -> 1.15 -> 1.25 -> 1.15 -> 1.0
+    switch (frame) {
+      case 1:
+        return 1.0;
+      case 2:
+        return 1.35;
+      case 3:
+        return 1.25;
+      case 4:
+        return 1.15;
+      case 5:
+        return 1.0;
+      default:
+        return 1.0;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String assetPath;
+    if (widget.isSelected && widget.isAnimating) {
+      assetPath =
+          widget.animFrame == 1
+              ? 'assets/emoji/${widget.emotion}.webp'
+              : 'assets/emoji/${widget.emotion} (${widget.animFrame - 1}).webp';
+    } else {
+      assetPath = 'assets/emoji/${widget.emotion}.webp';
+    }
+
+    final scale =
+        widget.isSelected && widget.isAnimating
+            ? _getScale(widget.animFrame)
+            : 1.0;
+
+    // AnimatedSwitcher + FadeTransition untuk transisi frame lebih mulus
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 120), // lebih lambat dan smooth
+      switchInCurve: Curves.easeInOut,
+      switchOutCurve: Curves.easeInOut,
+      transitionBuilder:
+          (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+      child: Transform.scale(
+        key: ValueKey(assetPath),
+        scale: scale,
+        child: Image.asset(
+          assetPath,
+          width: 32,
+          height: 32,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

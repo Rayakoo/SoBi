@@ -329,9 +329,9 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                         // Kanan: Card ungu dengan sisa hari dan SVG
                         Container(
                           width: 90,
-                          height: 110,
+                          height: 125,
                           decoration: BoxDecoration(
-                            color: AppColors.primary_30,
+                            color: AppColors.primary_50,
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: Column(
@@ -345,6 +345,7 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
+                              // Ganti dengan asset yang pasti ada
                               SvgPicture.asset(
                                 'assets/illustration/Fatimah-Senang.svg',
                                 width: 48,

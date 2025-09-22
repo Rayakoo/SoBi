@@ -2,47 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sobi/features/presentation/router/app_routes.dart';
 import 'package:sobi/features/presentation/screens/navbar_screen.dart';
-import '../screens/login_screen.dart';
-import '../screens/register_screen.dart';
-import '../screens/verif_screen.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/register_screen.dart';
+import '../screens/auth/verif_screen.dart';
 import '../../../splash_screen.dart';
 import '../screens/homepage_screen.dart';
 import '../screens/sobi_quran_screen.dart';
 import '../screens/sobi_goals_screen.dart';
 import '../screens/sobi_time_screen.dart';
-import '../screens/profile_screen.dart';
-import '../screens/settings_screen.dart';
-import '../screens/profile_view_screen.dart';
-import '../screens/edit_profile_screen.dart';
-import '../screens/faq_screen.dart';
-import '../screens/about_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/profile/settings_screen.dart';
+import '../screens/profile/profile_view_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/faq_screen.dart';
+import '../screens/profile/about_screen.dart';
 import '../screens/sobi_ai_screen.dart';
 import '../screens/chat_ahli_screen.dart';
 import '../screens/chat_anonim_screen.dart';
 import '../screens/pendengar_curhat_screen.dart';
 import '../screens/chat_screen.dart';
 import '../screens/detail_pembayaran_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.splash,
     redirect: (BuildContext context, GoRouterState state) async {
-      // final user = Supabase.instance.client.auth.currentUser;
-      // final loggingIn =
-      //     state.subloc == AppRoutes.login || state.subloc == AppRoutes.register;
-      // final isSplash = state.subloc == AppRoutes.splash;
+      final storage = const FlutterSecureStorage();
+      final token = await storage.read(key: 'auth_token');
+      final isSplash = state.subloc == AppRoutes.splash;
+      final isLogin =
+          state.subloc == AppRoutes.login || state.subloc == AppRoutes.register;
 
-      // if (isSplash) {
-      //   return null;
-      // }
-      // if (user == null && !loggingIn) {
-      //   return AppRoutes.login;
-      // }
-      // if (user != null && loggingIn) {
-      //   // Setelah register, arahkan ke sekolah form
-      //   return AppRoutes.navbar;
-      // }
-      // return null;
+      if (token != null && token.isNotEmpty) {
+        // Jika sudah login, cegah balik ke login/register/splash
+        if (isLogin || isSplash) {
+          return AppRoutes.navbar;
+        }
+        return null; // selain itu biarkan user bebas ke route lain
+      } else {
+        // Jika belum login, hanya boleh ke login/register/splash
+        if (!isLogin && !isSplash) {
+          return AppRoutes.login;
+        }
+        return null;
+      }
     },
     routes: [
       GoRoute(
@@ -60,8 +64,11 @@ class AppRouter {
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
-        path: AppRoutes.verif,
-        builder: (context, state) => const VerifScreen(),
+        path: AppRoutes.verif + '/:email',
+        builder: (context, state) {
+          final email = state.params['email'] ?? '';
+          return VerifScreen(email: email);
+        },
       ),
       GoRoute(
         path: AppRoutes.homepage,

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sobi/features/presentation/screens/navbar_screen.dart';
-import '../style/colors.dart';
-import '../style/typography.dart';
+import '../../style/colors.dart';
+import '../../style/typography.dart';
 import 'package:go_router/go_router.dart';
-import '../router/app_routes.dart';
+import '../../router/app_routes.dart';
+import 'package:provider/provider.dart';
+import '../../provider/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,6 +17,11 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    if (authProvider.user == null && authProvider.token != null) {
+      authProvider.fetchUser();
+    }
+    final username = authProvider.user?.username ?? '...';
     final screenWidth = MediaQuery.of(context).size.width;
     final bentoHeight = 160.0;
     final profilePicSize = 100.0;
@@ -28,7 +35,7 @@ class ProfileScreen extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: 300),
+                  const SizedBox(height: 300),
                   // Capaian Ibadah
                   Text(
                     'Capaian Ibadah',
@@ -78,7 +85,6 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-
                               Text(
                                 'Progres Harian',
                                 style: AppTextStyles.body_4_bold.copyWith(
@@ -123,15 +129,15 @@ class ProfileScreen extends StatelessWidget {
                                               'Al-Maidah : 48',
                                               style: AppTextStyles.body_4_bold
                                                   .copyWith(
-                                                    color: AppColors.primary_90,
-                                                  ),
+                                                color: AppColors.primary_90,
+                                              ),
                                             ),
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 2,
-                                                  ),
+                                                horizontal: 8,
+                                                vertical: 2,
+                                              ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.primary_30,
                                                 borderRadius:
@@ -142,8 +148,8 @@ class ProfileScreen extends StatelessWidget {
                                                 style: AppTextStyles
                                                     .body_5_regular
                                                     .copyWith(
-                                                      color: Colors.white,
-                                                    ),
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -175,13 +181,13 @@ class ProfileScreen extends StatelessWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
-                                            SizedBox(height: 5),
+                                            const SizedBox(height: 5),
                                             Text(
                                               'Titik Belajar',
                                               style: AppTextStyles.body_4_bold
                                                   .copyWith(
-                                                    color: AppColors.primary_90,
-                                                  ),
+                                                color: AppColors.primary_90,
+                                              ),
                                             ),
                                             Row(
                                               children: [
@@ -206,10 +212,9 @@ class ProfileScreen extends StatelessWidget {
                                                   style: AppTextStyles
                                                       .body_5_regular
                                                       .copyWith(
-                                                        color:
-                                                            AppColors
-                                                                .primary_90,
-                                                      ),
+                                                    color:
+                                                        AppColors.primary_90,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -323,7 +328,7 @@ class ProfileScreen extends StatelessWidget {
                               color: AppColors.primary_30,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.edit,
                               color: Colors.white,
                               size: 18,
@@ -336,7 +341,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Fatimah Azzahra',
+                  username,
                   style: AppTextStyles.heading_5_bold.copyWith(
                     color: AppColors.default_10,
                   ),
@@ -346,30 +351,38 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           // 4. Tombol setting di pojok kanan atas
+          // Pindahkan ke urutan paling akhir agar tidak tertutup widget lain!
           Positioned(
             top: 38,
             right: 28,
-            child: GestureDetector(
-              onTap: () {
-                context.push(AppRoutes.settings);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary_10.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.settings,
-                  color: AppColors.primary_90,
-                  size: 24,
+            child: Builder(
+              builder: (context) => GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  print('[DEBUG] Settings button tapped');
+                  if (GoRouter.of(context).location != AppRoutes.settings) {
+                    print('[DEBUG] Navigating to settings...');
+                    context.push(AppRoutes.settings);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary_10.withOpacity(0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.settings,
+                    color: AppColors.primary_90,
+                    size: 24,
+                  ),
                 ),
               ),
             ),

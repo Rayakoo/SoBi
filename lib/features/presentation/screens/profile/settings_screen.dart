@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../provider/auth_provider.dart';
+import '../../style/colors.dart';
+import '../../style/typography.dart';
 import 'package:sobi/features/presentation/router/app_routes.dart';
-import '../style/colors.dart';
-import '../style/typography.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _LogoutConfirmDialog(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final profilePicSize = 100.0;
+    final authProvider = Provider.of<AuthProvider>(context);
+    final username = authProvider.user?.username ?? '-';
 
     final List<_SettingsMenuItem> menuItems = [
       _SettingsMenuItem(
@@ -39,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
       _SettingsMenuItem(
         icon: 'assets/icons/logout.svg',
         title: 'Keluar',
-        onTap: () {},
+        onTap: () => _showLogoutDialog(context),
         isLogout: true,
       ),
     ];
@@ -141,7 +153,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Fatimah Azzahra',
+                  username,
                   style: AppTextStyles.heading_5_bold.copyWith(
                     color: AppColors.default_10,
                   ),
@@ -238,6 +250,168 @@ class _SettingsMenuCard extends StatelessWidget {
               ),
             ),
             const Icon(Icons.chevron_right, color: Colors.black, size: 28),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Pop up 1: Konfirmasi keluar
+class _LogoutConfirmDialog extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: 320,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/svg/fatimah_sedih.png', // ganti ke svg/png sesuai asset
+              width: 100,
+              height: 100,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Keluar',
+              style: AppTextStyles.heading_5_bold.copyWith(
+                color: AppColors.primary_90,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Kamu yakin ingin keluar akun ini?',
+              style: AppTextStyles.body_4_regular.copyWith(
+                color: AppColors.primary_90,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.default_30,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: AppTextStyles.body_4_bold.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      // Tunggu proses logout selesai
+                      await authProvider.logout();
+                      // Tutup dialog konfirmasi
+                      Navigator.of(context).pop();
+                      // Tampilkan dialog sukses
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (ctx) => _LogoutSuccessDialog(),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Keluar',
+                      style: AppTextStyles.body_4_bold.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Pop up 2: Sukses keluar
+class _LogoutSuccessDialog extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: 320,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/svg/fatimah_senang.png', // ganti ke svg/png sesuai asset
+              width: 100,
+              height: 100,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Berhasil',
+              style: AppTextStyles.heading_5_bold.copyWith(
+                color: AppColors.primary_90,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Selamat kamu berhasil keluar aplikasi',
+              style: AppTextStyles.body_4_regular.copyWith(
+                color: AppColors.primary_90,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  context.go(AppRoutes.login);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary_30,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Lanjutkan',
+                  style: AppTextStyles.body_4_bold.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

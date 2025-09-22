@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../data/datasources/auth_datasources.dart';
+import '../provider/auth_provider.dart';
 import '../style/colors.dart';
 import '../style/typography.dart';
 import 'homepage_screen.dart';
 import 'sobi_quran_screen.dart';
 import 'sobi_goals_screen.dart';
 import 'sobi_time_screen.dart';
-import 'profile_screen.dart';
+import 'profile/profile_screen.dart';
 
 // Global controller
 class NavbarController {
@@ -54,7 +57,31 @@ class _NavbarScreenState extends State<NavbarScreen> {
   ];
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Fetch user jika user masih null dan token ada
+    if (authProvider.user == null && authProvider.token != null) {
+      authProvider.fetchUser();
+    }
+    _debugNavbarStorage();
+  }
+
+  Future<void> _debugNavbarStorage() async {
+    final authDs = AuthDatasources();
+    await authDs.debugPrintStorage();
+    final cachedUser = await authDs.getCachedUser();
+    print('DEBUG [NavbarScreen] cached user: $cachedUser');
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    // Ambil user profile jika belum ada
+    if (authProvider.user == null && authProvider.token != null) {
+      authProvider.fetchUser();
+    }
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final navbarHeight = screenHeight * 0.10;
@@ -193,21 +220,21 @@ class _NavbarScreenState extends State<NavbarScreen> {
                       if (isChatMenuOpen) ...[
                         _ChatMenuButton(
                           iconAsset: 'assets/icons/globe.svg',
-                          color: AppColors.primary_30,
+                          color: AppColors.secondary_10,
                           onTap: () => _goToChatAnonim(context),
                           size: chatMenuSize,
                         ),
                         const SizedBox(height: 12),
                         _ChatMenuButton(
                           iconAsset: 'assets/icons/head.svg',
-                          color: AppColors.primary_30,
+                          color: AppColors.secondary_10,
                           onTap: () => _goToChatAhli(context),
                           size: chatMenuSize,
                         ),
                         const SizedBox(height: 12),
                         _ChatMenuButton(
                           iconAsset: 'assets/icons/swirl.svg',
-                          color: AppColors.primary_30,
+                          color: AppColors.secondary_10,
                           onTap: () => _goToSobiAi(context),
                           size: chatMenuSize,
                         ),
@@ -225,7 +252,7 @@ class _NavbarScreenState extends State<NavbarScreen> {
                             width: chatMenuSize,
                             height: chatMenuSize,
                             decoration: BoxDecoration(
-                              color: AppColors.primary_90,
+                              color: AppColors.primary_50,
                               shape: BoxShape.circle,
                               boxShadow: const [
                                 BoxShadow(
@@ -345,3 +372,4 @@ class _ChatMenuButton extends StatelessWidget {
     );
   }
 }
+

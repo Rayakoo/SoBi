@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../style/colors.dart';
-import '../style/typography.dart';
+import 'package:provider/provider.dart';
+import '../../provider/auth_provider.dart';
+import '../../style/colors.dart';
+import '../../style/typography.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -12,18 +14,10 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController namaController = TextEditingController(
-    text: 'Fatimah Azzahra',
-  );
-  final TextEditingController usernameController = TextEditingController(
-    text: 'fatimzhraa_',
-  );
-  final TextEditingController emailController = TextEditingController(
-    text: 'fatimahazzahra@gmail.com',
-  );
-  final TextEditingController telpController = TextEditingController(
-    text: '+628 123 456 7890',
-  );
+  late TextEditingController namaController;
+  late TextEditingController usernameController;
+  late TextEditingController emailController;
+  late TextEditingController telpController;
   String gender = 'Akhwat';
 
   int selectedAvatar = 0;
@@ -37,9 +31,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    namaController = TextEditingController(text: user?.username ?? '');
+    usernameController = TextEditingController(text: user?.username ?? '');
+    emailController = TextEditingController(text: user?.email ?? '');
+    telpController = TextEditingController(
+      text: '',
+    ); // update jika ada field telp di user
+    // gender = user?.gender ?? 'Akhwat'; // jika ada field gender
+  }
+
+  @override
+  void dispose() {
+    namaController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    telpController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final profilePicSize = 100.0;
+    const profilePicSize = 100.0;
 
     return Scaffold(
       backgroundColor: Colors.white,

@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:sobi/features/presentation/provider/auth_provider.dart';
 import 'package:sobi/features/presentation/router/app_routes.dart';
-import '../style/colors.dart';
-import '../style/typography.dart';
+import 'package:sobi/features/presentation/style/colors.dart';
+import 'package:sobi/features/presentation/style/typography.dart';
+
 
 class ProfileViewScreen extends StatelessWidget {
   const ProfileViewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     final screenWidth = MediaQuery.of(context).size.width;
     final profilePicSize = 100.0;
 
@@ -25,59 +31,57 @@ class ProfileViewScreen extends StatelessWidget {
                   const SizedBox(height: 300),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      children: [
-                        _ProfileField(label: 'Nama', value: 'Fatimah Azzahra'),
-                        const SizedBox(height: 16),
-                        _ProfileField(
-                          label: 'Nama Pengguna',
-                          value: 'fatimzhraa_',
-                        ),
-                        const SizedBox(height: 16),
-                        _GenderField(selected: 'Akhwat'),
-                        const SizedBox(height: 16),
-                        _ProfileField(
-                          label: 'Email',
-                          value: 'fatimahazzahra@gmail.com',
-                        ),
-                        const SizedBox(height: 16),
-                        _ProfileField(
-                          label: 'Nomor Telepon',
-                          value: '+628 123 456 7890',
-                        ),
-                        const SizedBox(height: 30),
-                        SizedBox(
-  width: double.infinity,
-  height: 56,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.primary_90,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-    ),
-    onPressed: () {
-      // aksi tombol, contoh:
-      context.push(AppRoutes.edit_profile);
-    },
-    child: Text(
-      'Edit',
-      style: AppTextStyles.body_3_bold.copyWith(
-        color: Colors.white,
-        fontSize: 18,
-      ),
-    ),
-  ),
-),
-
-                      ],
-                    ),
+                    child:
+                        user == null
+                            ? const Center(child: Text("No user data"))
+                            : Column(
+                              children: [
+                                _ProfileField(
+                                  label: 'Nama',
+                                  value: user.username ?? '-',
+                                ),
+                                const SizedBox(height: 16),
+                                _ProfileField(
+                                  label: 'Email',
+                                  value: user.email,
+                                ),
+                                const SizedBox(height: 16),
+                                _ProfileField(
+                                  label: 'Role',
+                                  value: user.userRole ?? '-',
+                                ),
+                                const SizedBox(height: 16),
+                                _ProfileField(label: 'ID', value: user.id),
+                                const SizedBox(height: 30),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary_90,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      context.push(AppRoutes.edit_profile);
+                                    },
+                                    child: Text(
+                                      'Edit',
+                                      style: AppTextStyles.body_3_bold.copyWith(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                   ),
                 ],
               ),
             ),
           ),
-          
           // SVG profil background
           Positioned(
             top: 0,
@@ -121,7 +125,7 @@ class ProfileViewScreen extends StatelessWidget {
                               color: AppColors.primary_30,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.edit,
                               color: Colors.white,
                               size: 18,
@@ -134,7 +138,7 @@ class ProfileViewScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Fatimah Azzahra',
+                  user?.username ?? '-',
                   style: AppTextStyles.heading_5_bold.copyWith(
                     color: AppColors.default_10,
                   ),

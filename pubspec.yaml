@@ -44,6 +44,9 @@ dependencies:
   fluttertoast: ^8.0.9 
   flutter_svg: ^2.0.9
   shared_preferences: ^2.5.3
+  flutter_dotenv: ^6.0.0
+  flutter_secure_storage: ^9.2.4
+  dio: ^5.9.0
   
 
 
@@ -69,8 +72,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
+     - .env
      - assets/splash/splash.png
      - assets/logo/Logo.png
      - assets/svg/login_background.svg
@@ -81,6 +84,7 @@ flutter:
      - assets/homepage/
      - assets/illustration/
      - assets/homepage/bunga/
+     - assets/emoji/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
