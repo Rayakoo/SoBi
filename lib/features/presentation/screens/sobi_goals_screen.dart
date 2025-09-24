@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
+import '../provider/sobi-goals_provider.dart';
 import '../style/colors.dart';
 import '../style/typography.dart';
 
@@ -24,44 +26,21 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
   String? selectedGoal;
   DateTime? selectedDate;
   bool showDatePicker = false;
-  bool hasActiveGoal = false; // Tambahkan state ini
-
-  // Dummy data untuk misi harian
-  final List<Map<String, dynamic>> dailyTasks = [
-    {
-      'icon': Icons.edit,
-      'title': 'Tuliskan 5 alasan kenapa harus berhenti pacaran',
-      'checked': false,
-    },
-    {
-      'icon': Icons.play_circle_outline,
-      'title': 'Mendengarkan kajian singkat tentang cinta & zina',
-      'checked': false,
-    },
-    {
-      'icon': Icons.wallpaper,
-      'title': 'Pasang niat hijrah sebagai wallpaper HP',
-      'checked': false,
-    },
-    {
-      'icon': Icons.menu_book,
-      'title': 'Membaca QS. An-Nur ayat 30-31 dan artinya',
-      'checked': false,
-    },
-    {
-      'icon': Icons.chat_bubble_outline,
-      'title': 'Curhat ke Allah lewat shalat dan doa panjang',
-      'checked': false,
-    },
-  ];
 
   @override
   void initState() {
     super.initState();
     selectedGoal = null;
     selectedDate = null;
-    // Inisialisasi data lokal untuk DateFormat
     initializeDateFormatting('id_ID', null);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = Provider.of<SobiGoalsProvider>(context, listen: false);
+      provider.isLoading = true;
+      provider.notifyListeners();
+      await provider.fetchTodayMission();
+      provider.isLoading = false;
+      provider.notifyListeners();
+    });
   }
 
   void _showDatePicker() async {
@@ -191,52 +170,61 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
     });
   }
 
-  int getDaysLeft() {
-    if (selectedDate == null) return 0;
-    final today = DateTime.now();
-    final diff =
-        selectedDate!
-            .difference(DateTime(today.year, today.month, today.day))
-            .inDays;
-    return diff;
-  }
-
-  int getTotalDays() {
-    if (selectedDate == null) return 0;
-    final today = DateTime.now();
-    final total =
-        selectedDate!
-            .difference(DateTime(today.year, today.month, today.day))
-            .inDays +
-        1;
-    return total;
-  }
-
-  int getCurrentDayIndex() {
-    if (selectedDate == null) return 0;
-    final today = DateTime.now();
-    final start = DateTime(today.year, today.month, today.day);
-    final total = selectedDate!.difference(start).inDays + 1;
-    final done = getTotalDays() - getDaysLeft();
-    return done;
-  }
-
-  double getProgress() {
-    final checked = dailyTasks.where((t) => t['checked'] == true).length;
-    return checked / dailyTasks.length;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final selected = selectedDate ?? today;
-    final days =
-        selectedDate != null
-            ? selectedDate!
-                    .difference(DateTime(today.year, today.month, today.day))
-                    .inDays +
-                1
-            : 0;
+    final provider = Provider.of<SobiGoalsProvider>(context);
+    print('[screen] todayMissions: ${provider.todayMissions}');
+    // Debug detail isi todayMissions
+    for (var i = 0; i < provider.todayMissions.length; i++) {
+      final m = provider.todayMissions[i];
+      print(
+        '[screen] todayMissions[$i]: userGoal=${m.userGoal}, dayIndex=${m.dayIndex}, missions=${m.missions}',
+      );
+      if (m.userGoal != null) {
+        print(
+          '[screen] todayMissions[$i].userGoal.status: ${m.userGoal.status}',
+        );
+      }
+    }
+    final isLoading = provider.isLoading;
+    final goalStatus = provider.goalStatus;
+    final goalEntity = provider.goalEntity;
+    final todayMissions = provider.todayMissions;
+    final hasActiveGoal = goalStatus == 'active';
+    final error = provider.error;
+
+    // Debug status
+    print('[screen] goalStatus: $goalStatus');
+    print('[screen] hasActiveGoal: $hasActiveGoal');
+    final missionData = (todayMissions.isNotEmpty) ? todayMissions.first : null;
+    print('[screen] missionData: $missionData');
+    print('[screen] missionData != null: ${missionData != null}');
+
+    // Ambil data dari mission jika ada
+    // final missionData = (todayMissions.isNotEmpty) ? todayMissions.first : null;
+    final mission =
+        (missionData != null && missionData.missions.isNotEmpty)
+            ? missionData.missions.first
+            : null;
+
+    final userGoal = missionData?.userGoal;
+    final dayNumber = mission?.mission.dayNumber ?? 0;
+    final focus = mission?.mission.focus ?? '';
+    final category = userGoal?.goalCategory ?? selectedGoal;
+    final startDate = userGoal?.startDate;
+    final targetEndDate = userGoal?.targetEndDate;
+
+    int daysLeft = 0;
+    int totalDays = 0;
+    if (startDate != null && targetEndDate != null && dayNumber > 0) {
+      totalDays = targetEndDate.difference(startDate).inDays + 1;
+      daysLeft = totalDays - dayNumber;
+    }
+
+    double progress =
+        mission?.progress.completionPercentage != null
+            ? (mission!.progress.completionPercentage! / 100)
+            : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -254,7 +242,11 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child:
-            hasActiveGoal
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : error != null
+                ? Center(child: Text(error))
+                : hasActiveGoal && missionData != null
                 ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -294,7 +286,7 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                                 ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
-                                    value: selectedGoal,
+                                    value: category,
                                     isExpanded: true,
                                     hint: Text(
                                       'Masukkan Target',
@@ -308,9 +300,9 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                                     ),
                                     items: [
                                       DropdownMenuItem<String>(
-                                        value: selectedGoal,
+                                        value: category,
                                         child: Text(
-                                          selectedGoal ?? '',
+                                          category ?? '',
                                           style: AppTextStyles.body_3_regular
                                               .copyWith(
                                                 color: AppColors.primary_90,
@@ -338,14 +330,13 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                '${getDaysLeft()} hari tersisa',
+                                '$daysLeft hari tersisa',
                                 style: AppTextStyles.heading_6_bold.copyWith(
                                   color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
-                              // Ganti dengan asset yang pasti ada
                               SvgPicture.asset(
                                 'assets/illustration/Fatimah-Senang.svg',
                                 width: 48,
@@ -386,11 +377,8 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
-                                  children: List.generate(getTotalDays(), (
-                                    index,
-                                  ) {
-                                    final isChecked =
-                                        index < getCurrentDayIndex();
+                                  children: List.generate(totalDays, (index) {
+                                    final isChecked = index < dayNumber;
                                     return Padding(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 4.0,
@@ -444,7 +432,7 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                                 width:
                                     MediaQuery.of(context).size.width *
                                     0.7 *
-                                    getProgress(),
+                                    progress,
                                 decoration: BoxDecoration(
                                   color: AppColors.primary_30,
                                   borderRadius: BorderRadius.circular(12),
@@ -473,57 +461,60 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                       ),
                     ),
                     Text(
-                      'Fokus : Menyadari kesalahan dan membangun niat hijrah',
+                      'Fokus : $focus',
                       style: AppTextStyles.body_4_regular.copyWith(
                         color: AppColors.primary_90,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // List tugas harian
-                    ...dailyTasks.asMap().entries.map((entry) {
-                      final idx = entry.key;
-                      final task = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.primary_30),
-                          ),
-                          child: ListTile(
-                            leading: Icon(
-                              task['icon'],
-                              color: AppColors.primary_30,
+                    // List tugas harian dari tasks
+                    if (mission != null)
+                      ...mission.tasks.map((taskWithProgress) {
+                        final task = taskWithProgress.task;
+                        final progress = taskWithProgress.progress;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.primary_30),
                             ),
-                            title: Text(
-                              task['title'],
-                              style:
-                                  idx == 2
-                                      ? AppTextStyles.body_4_bold.copyWith(
-                                        color: AppColors.primary_90,
-                                      )
-                                      : AppTextStyles.body_4_regular.copyWith(
-                                        color: AppColors.primary_90,
-                                      ),
-                            ),
-                            trailing: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  task['checked'] = !(task['checked'] as bool);
-                                });
-                              },
-                              child: Icon(
-                                task['checked']
-                                    ? Icons.check_circle
-                                    : Icons.radio_button_unchecked,
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.checklist,
                                 color: AppColors.primary_30,
+                              ),
+                              title: Text(
+                                task.text,
+                                style: AppTextStyles.body_4_regular.copyWith(
+                                  color: AppColors.primary_90,
+                                ),
+                              ),
+                              trailing: GestureDetector(
+                                onTap:
+                                    progress.isCompleted
+                                        ? null
+                                        : () async {
+                                          debugPrint(
+                                            '[DEBUG] completeTask: userGoalId=${userGoal!.id}, taskId=${task.id}',
+                                          );
+                                          await provider.completeTask(
+                                            userGoal.id,
+                                            task.id,
+                                          );
+                                        },
+                                child: Icon(
+                                  progress.isCompleted
+                                      ? Icons.check_circle
+                                      : Icons.radio_button_unchecked,
+                                  color: AppColors.primary_30,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
                     const SizedBox(height: 24),
                   ],
                 )
@@ -685,11 +676,23 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                         child: SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                hasActiveGoal = true;
-                              });
-                            },
+                            onPressed:
+                                isLoading
+                                    ? null
+                                    : () async {
+                                      final isoDate = DateFormat(
+                                        'yyyy-MM-dd',
+                                      ).format(selectedDate!);
+                                      debugPrint(
+                                        '[DEBUG] createGoal request: {goal_category: $selectedGoal, target_end_date: $isoDate}',
+                                      );
+                                      await provider.createGoal(
+                                        selectedGoal!,
+                                        isoDate,
+                                      );
+                                      await provider
+                                          .fetchGoalStatusAndMission();
+                                    },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary_90,
                               shape: RoundedRectangleBorder(
@@ -697,12 +700,22 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
-                            child: Text(
-                              'Mulai',
-                              style: AppTextStyles.body_3_bold.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
+                            child:
+                                provider.isLoading
+                                    ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : Text(
+                                      'Mulai',
+                                      style: AppTextStyles.body_3_bold.copyWith(
+                                        color: Colors.white,
+                                      ),
+                                    ),
                           ),
                         ),
                       ),

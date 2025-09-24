@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:sobi/features/presentation/style/colors.dart';
+import 'package:sobi/features/presentation/style/typography.dart';
 import '../../router/app_routes.dart';
 import '../../provider/auth_provider.dart';
 
@@ -65,28 +67,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
-                    const Text(
+                    Text(
                       'Daftar',
-                      style: TextStyle(
+                      style: AppTextStyles.heading_4_bold.copyWith(
                         color: Colors.white,
-                        fontSize: 28,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                        height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Buat akun untuk melanjutkan!',
-                      style: TextStyle(
-                        color: Color(0xB2FFFFFF),
-                        fontSize: 12,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w400,
-                        height: 1.50,
+                      style: AppTextStyles.body_4_regular.copyWith(
+                        color: Colors.white.withOpacity(0.7),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 40),
                     // Nama
                     _RegisterField(
                       label: 'Nama',
@@ -131,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: double.infinity,
                         height: 56,
                         decoration: ShapeDecoration(
-                          color: const Color(0xFF3F2C53),
+                          color: AppColors.primary_90,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -144,30 +137,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ],
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
                             'Daftar',
-                            style: TextStyle(
+                            style: AppTextStyles.body_2_bold.copyWith(
                               color: Colors.white,
-                              fontSize: 20,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              height: 1.30,
                             ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Center(
+                    Center(
                       child: Text(
                         'Atau',
-                        style: TextStyle(
-                          color: Color(0xFF8A8A8A),
-                          fontSize: 16,
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w400,
-                          height: 1.40,
+                        style: AppTextStyles.body_3_regular.copyWith(
+                          color: AppColors.default_90,
                         ),
                       ),
                     ),
@@ -177,11 +162,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       width: double.infinity,
                       height: 56,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFD8CDE4),
+                        color: AppColors.primary_10,
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(
+                          side: BorderSide(
                             width: 1,
-                            color: Color(0xFF3F2C53),
+                            color: AppColors.primary_90,
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -218,14 +203,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
+                          Text(
                             'Lanjutkan dengan Google',
-                            style: TextStyle(
-                              color: Color(0xFF2E2E2E),
-                              fontSize: 14,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w400,
-                              height: 1.45,
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: AppColors.primary_90,
                             ),
                           ),
                         ],
@@ -237,11 +218,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       width: double.infinity,
                       height: 56,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFD8CDE4),
+                        color: AppColors.primary_10,
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(
+                          side: BorderSide(
                             width: 1,
-                            color: Color(0xFF3F2C53),
+                            color: AppColors.primary_90,
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -253,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: 30,
                             height: 30,
                             decoration: ShapeDecoration(
-                              color: const Color(0xFF1877F2),
+                              color: Color(0xFF1877F2),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -278,14 +259,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
+                          Text(
                             'Lanjutkan dengan Facebook',
-                            style: TextStyle(
-                              color: Color(0xFF2E2E2E),
-                              fontSize: 14,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w400,
-                              height: 1.45,
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: AppColors.primary_90,
                             ),
                           ),
                         ],
@@ -295,28 +272,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Sudah memiliki akun? ',
-                          style: TextStyle(
-                            color: Color(0xFF2E2E2E),
-                            fontSize: 12,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w400,
-                            height: 1.50,
+                          style: AppTextStyles.body_5_regular.copyWith(
+                            color: AppColors.primary_90,
                           ),
                         ),
                         GestureDetector(
                           onTap: () {
                             context.go(AppRoutes.login);
                           },
-                          child: const Text(
+                          child: Text(
                             'Masuk',
-                            style: TextStyle(
-                              color: Color(0xFF141414),
-                              fontSize: 12,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w700,
-                              height: 1.50,
+                            style: AppTextStyles.body_5_bold.copyWith(
+                              color: AppColors.primary_90,
                               decoration: TextDecoration.underline,
                             ),
                           ),
@@ -359,12 +328,8 @@ class _RegisterField extends StatelessWidget {
           padding: const EdgeInsets.only(left: 16.0),
           child: Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFF141414),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w500,
-              height: 1.40,
+            style: AppTextStyles.body_3_medium.copyWith(
+              color: AppColors.primary_90,
             ),
           ),
         ),
@@ -373,9 +338,9 @@ class _RegisterField extends StatelessWidget {
           width: double.infinity,
           height: 56,
           decoration: ShapeDecoration(
-            color: const Color(0xFFD8CDE4),
+            color: AppColors.primary_10,
             shape: RoundedRectangleBorder(
-              side: const BorderSide(width: 1, color: Color(0xFF3F2C53)),
+              side: BorderSide(width: 1, color: AppColors.primary_90),
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -390,20 +355,12 @@ class _RegisterField extends StatelessWidget {
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: hint,
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF8C8C8C),
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w400,
-                    height: 1.40,
+                  hintStyle: AppTextStyles.body_3_regular.copyWith(
+                    color: AppColors.default_90,
                   ),
                 ),
-                style: const TextStyle(
-                  color: Color(0xFF141414),
-                  fontSize: 16,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w500,
-                  height: 1.40,
+                style: AppTextStyles.body_3_medium.copyWith(
+                  color: AppColors.primary_90,
                 ),
               ),
             ),

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../provider/auth_provider.dart';
-import '../../style/colors.dart';
-import '../../style/typography.dart';
+import 'package:sobi/features/presentation/provider/auth_provider.dart';
+
 import 'package:sobi/features/presentation/router/app_routes.dart';
+import 'package:sobi/features/presentation/style/colors.dart';
+import 'package:sobi/features/presentation/style/typography.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

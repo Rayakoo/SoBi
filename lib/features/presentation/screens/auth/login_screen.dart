@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:sobi/features/presentation/style/colors.dart';
+import 'package:sobi/features/presentation/style/typography.dart';
 import '../../router/app_routes.dart';
 import '../../provider/auth_provider.dart';
 
@@ -18,12 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    print(
+      'DEBUG login_screen: email=${emailController.text}, password=${passwordController.text}',
+    );
     await authProvider.signIn(emailController.text, passwordController.text);
+    print(
+      'DEBUG login_screen: token=${authProvider.token}, user=${authProvider.user}',
+    );
     if (authProvider.token != null && authProvider.user != null) {
-      await authProvider.fetchUser();
+      // Tidak perlu panggil checkLoginStatus di sini, sudah di AuthProvider
       context.go(AppRoutes.navbar);
     } else {
-      // Tampilkan error jika login gagal
+      print('DEBUG login_screen: error=${authProvider.error}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(authProvider.error ?? 'Login gagal')),
       );
@@ -58,25 +66,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 60),
-                    const Text(
+                    Text(
                       'Masuk ke akun\nAnda',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                        height: 1.35,
+                      style: AppTextStyles.heading_3_bold.copyWith(
+                        color: AppColors.default_10,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Masukkan alamat email dan kata sandi Anda untuk masuk.',
-                      style: TextStyle(
-                        color: Color(0xB2FFFFFF),
-                        fontSize: 12,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w400,
-                        height: 1.50,
+                      style: AppTextStyles.body_4_regular.copyWith(
+                        color: AppColors.default_10,
                       ),
                     ),
                     const SizedBox(height: 60),
@@ -84,16 +83,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(left: 16.0),
                           child: Text(
                             'Email',
-                            style: TextStyle(
-                              color: Color(0xFF141414),
-                              fontSize: 16,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              height: 1.40,
+                            style: AppTextStyles.body_3_medium.copyWith(
+                              color: AppColors.primary_90,
                             ),
                           ),
                         ),
@@ -119,23 +114,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               alignment: Alignment.centerLeft,
                               child: TextField(
                                 controller: emailController,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: 'Email',
-                                  hintStyle: TextStyle(
-                                    color: Color(0xFF8C8C8C),
-                                    fontSize: 16,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
-                                    height: 1.40,
+                                  hintStyle: AppTextStyles.body_3_regular.copyWith(
+                                    color: AppColors.default_90,
                                   ),
                                 ),
-                                style: const TextStyle(
-                                  color: Color(0xFF141414),
-                                  fontSize: 16,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.40,
+                                style: AppTextStyles.body_3_medium.copyWith(
+                                  color: AppColors.primary_90,
                                 ),
                               ),
                             ),
@@ -148,16 +135,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(left: 16.0),
                           child: Text(
                             'Kata Sandi',
-                            style: TextStyle(
-                              color: Color(0xFF141414),
-                              fontSize: 16,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              height: 1.40,
+                            style: AppTextStyles.body_3_medium.copyWith(
+                              color: AppColors.primary_90,
                             ),
                           ),
                         ),
@@ -184,23 +167,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextField(
                                 controller: passwordController,
                                 obscureText: true,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: 'Kata sandi',
-                                  hintStyle: TextStyle(
-                                    color: Color(0xFF8C8C8C),
-                                    fontSize: 16,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
-                                    height: 1.40,
+                                  hintStyle: AppTextStyles.body_3_regular.copyWith(
+                                    color: AppColors.default_90,
                                   ),
                                 ),
-                                style: const TextStyle(
-                                  color: Color(0xFF141414),
-                                  fontSize: 16,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.40,
+                                style: AppTextStyles.body_3_medium.copyWith(
+                                  color: AppColors.primary_90,
                                 ),
                               ),
                             ),
@@ -209,16 +184,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerRight,
                       child: Text(
                         'Lupa kata sandi?',
-                        style: TextStyle(
-                          color: Color(0xFF141414),
-                          fontSize: 12,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                          height: 1.50,
+                        style: AppTextStyles.body_5_bold.copyWith(
+                          color: AppColors.primary_90,
                         ),
                       ),
                     ),
@@ -230,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 56,
                         decoration: ShapeDecoration(
-                          color: const Color(0xFF3F2C53),
+                          color: AppColors.primary_90,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -243,30 +214,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
                             'Masuk',
-                            style: TextStyle(
+                            style: AppTextStyles.body_2_bold.copyWith(
                               color: Colors.white,
-                              fontSize: 20,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              height: 1.30,
                             ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Center(
+                    Center(
                       child: Text(
                         'Atau',
-                        style: TextStyle(
-                          color: Color(0xFF8A8A8A),
-                          fontSize: 16,
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w400,
-                          height: 1.40,
+                        style: AppTextStyles.body_3_regular.copyWith(
+                          color: AppColors.default_90,
                         ),
                       ),
                     ),
@@ -276,11 +239,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFD8CDE4),
+                        color: AppColors.primary_10,
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(
+                          side: BorderSide(
                             width: 1,
-                            color: Color(0xFF3F2C53),
+                            color: AppColors.primary_90,
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -317,14 +280,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
+                          Text(
                             'Lanjutkan dengan Google',
-                            style: TextStyle(
-                              color: Color(0xFF2E2E2E),
-                              fontSize: 14,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w400,
-                              height: 1.45,
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: AppColors.primary_90,
                             ),
                           ),
                         ],
@@ -336,11 +295,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFD8CDE4),
+                        color: AppColors.primary_10,
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(
+                          side: BorderSide(
                             width: 1,
-                            color: Color(0xFF3F2C53),
+                            color: AppColors.primary_90,
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -352,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 30,
                             height: 30,
                             decoration: ShapeDecoration(
-                              color: const Color(0xFF1877F2),
+                              color: Color(0xFF1877F2),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -377,14 +336,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
+                          Text(
                             'Lanjutkan dengan Facebook',
-                            style: TextStyle(
-                              color: Color(0xFF2E2E2E),
-                              fontSize: 14,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w400,
-                              height: 1.45,
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: AppColors.primary_90,
                             ),
                           ),
                         ],
@@ -395,28 +350,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Belum punya akun? ',
-                          style: TextStyle(
-                            color: Color(0xFF2E2E2E),
-                            fontSize: 12,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w400,
-                            height: 1.50,
+                          style: AppTextStyles.body_5_regular.copyWith(
+                            color: AppColors.primary_90,
                           ),
                         ),
                         GestureDetector(
                           onTap: () {
                             context.go(AppRoutes.register);
                           },
-                          child: const Text(
+                          child: Text(
                             'Daftar',
-                            style: TextStyle(
-                              color: Color(0xFF141414),
-                              fontSize: 12,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w700,
-                              height: 1.50,
+                            style: AppTextStyles.body_5_bold.copyWith(
+                              color: AppColors.primary_90,
                               decoration: TextDecoration.underline,
                             ),
                           ),
@@ -434,3 +381,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+                        

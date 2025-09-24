@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../presentation/router/app_router.dart'; // import checkLoginStatus
 import '../models/user_model.dart';
 
 class AuthDatasources {
@@ -41,14 +42,17 @@ class AuthDatasources {
       'phone': phone,
       'password': password,
     };
-    print('DEBUG signup request: $requestBody');
+    final url = '$baseUrl/signup';
+    print('DEBUG signup URL: $url');
+    print('DEBUG signup payload: $requestBody');
     try {
-      final res = await dio.post('$baseUrl/signup', data: requestBody);
+      final res = await dio.post(url, data: requestBody);
       print('DEBUG signup response: ${res.data}');
       return res.data['message'] ?? '';
     } catch (e) {
       print('DEBUG signup error: $e');
       if (e is DioError) {
+        print('DEBUG signup error status: ${e.response?.statusCode}');
         print('DEBUG signup error response: ${e.response?.data}');
       }
       rethrow;
@@ -58,14 +62,17 @@ class AuthDatasources {
   // Verify OTP
   Future<String> verifyOtp({required String email, required String otp}) async {
     final requestBody = {'email': email, 'otp': otp};
-    print('DEBUG verifyOtp request: $requestBody');
+    final url = '$baseUrl/verify-otp';
+    print('DEBUG verifyOtp URL: $url');
+    print('DEBUG verifyOtp payload: $requestBody');
     try {
-      final res = await dio.post('$baseUrl/verify-otp', data: requestBody);
+      final res = await dio.post(url, data: requestBody);
       print('DEBUG verifyOtp response: ${res.data}');
       return res.data['message'] ?? '';
     } catch (e) {
       print('DEBUG verifyOtp error: $e');
       if (e is DioError) {
+        print('DEBUG verifyOtp error status: ${e.response?.statusCode}');
         print('DEBUG verifyOtp error response: ${e.response?.data}');
       }
       rethrow;
@@ -87,43 +94,58 @@ class AuthDatasources {
     required String email,
     required String password,
   }) async {
-    final res = await dio.post(
-      '$baseUrl/signin',
-      data: {'email': email, 'password': password},
-    );
-    final data = res.data;
-    final token = data['access_token'] ?? '';
-    final refreshToken = data['refresh_token'] ?? '';
-    final expiresIn = data['expires_in'] ?? 0;
+    final url = '$baseUrl/signin';
+    print('DEBUG signin URL: $url');
+    print('DEBUG signin payload: {email: $email, password: $password}');
+    try {
+      final res = await dio.post(
+        url,
+        data: {'email': email, 'password': password},
+      );
+      print('DEBUG signin response: ${res.data}');
+      final data = res.data;
+      final token = data['access_token'] ?? '';
+      final refreshToken = data['refresh_token'] ?? '';
+      final expiresIn = data['expires_in'] ?? 0;
 
-    print('DEBUG signin response: $data');
-    if (token.isNotEmpty) {
-      await storage.write(key: 'auth_token', value: token);
-      print('DEBUG token saved: $token');
-      await storage.write(key: 'refresh_token', value: refreshToken);
-      print('DEBUG refreshToken saved: $refreshToken');
-      await storage.write(key: 'expires_in', value: expiresIn.toString());
-      print('DEBUG expiresIn saved: $expiresIn');
-      // Fetch user profile dan simpan ke cache
-      final user = await getUser();
-      await storage.write(key: 'user_data', value: jsonEncode(user.toJson()));
-      print('DEBUG user (from getUser) saved: ${user.toJson()}');
-      return {
-        'token': token,
-        'refresh_token': refreshToken,
-        'expires_in': expiresIn,
-        'user': user,
-        'message': data['message'] ?? '',
-      };
-    } else {
-      print('DEBUG token is empty, not saved');
-      return {
-        'token': null,
-        'refresh_token': null,
-        'expires_in': null,
-        'user': null,
-        'message': data['message'] ?? '',
-      };
+      if (token.isNotEmpty) {
+        await storage.write(
+          key: 'auth_token',
+          value: token,
+        ); // pastikan key benar
+        print('DEBUG token saved: $token');
+        await storage.write(key: 'refresh_token', value: refreshToken);
+        print('DEBUG refreshToken saved: $refreshToken');
+        await storage.write(key: 'expires_in', value: expiresIn.toString());
+        print('DEBUG expiresIn saved: $expiresIn');
+        // Fetch user profile dan simpan ke cache
+        final user = await getUser();
+        await storage.write(key: 'user_data', value: jsonEncode(user.toJson()));
+        print('DEBUG user (from getUser) saved: ${user.toJson()}');
+        return {
+          'token': token,
+          'refresh_token': refreshToken,
+          'expires_in': expiresIn,
+          'user': user,
+          'message': data['message'] ?? '',
+        };
+      } else {
+        print('DEBUG token is empty, not saved');
+        return {
+          'token': null,
+          'refresh_token': null,
+          'expires_in': null,
+          'user': null,
+          'message': data['message'] ?? '',
+        };
+      }
+    } catch (e) {
+      print('DEBUG signin error: $e');
+      if (e is DioError) {
+        print('DEBUG signin error status: ${e.response?.statusCode}');
+        print('DEBUG signin error response: ${e.response?.data}');
+      }
+      rethrow;
     }
   }
 
@@ -141,16 +163,20 @@ class AuthDatasources {
 
   // Get token
   Future<String?> getToken() async {
-    return await storage.read(key: 'auth_token');
+    final token = await storage.read(key: 'auth_token');
+    print('[DEBUG getToken] token=$token');
+    return token;
   }
 
   // Get user profile dari API
   Future<UserModel> getUser() async {
     final token = await getToken();
+    print('[DEBUG getUser] token=$token');
     final res = await dio.get(
       '$baseUrl/user/profile',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
+    print('[DEBUG getUser] response=${res.data}');
     return UserModel.fromJson(res.data);
   }
 
@@ -179,14 +205,28 @@ class AuthDatasources {
   // Logout
   Future<String> logout() async {
     final token = await getToken();
-    final res = await dio.post(
-      '$baseUrl/user/logout',
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-    );
-    await storage.delete(key: 'auth_token');
-    await storage.delete(key: 'refresh_token');
-    await storage.delete(key: 'expires_in');
-    await storage.delete(key: 'user_data'); // hapus user cache juga
-    return res.data['message'] ?? '';
+    final url = '$baseUrl/user/logout';
+    print('DEBUG logout URL: $url');
+    print('DEBUG logout token: $token');
+    try {
+      final res = await dio.post(
+        url,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      print('DEBUG logout response: ${res.data}');
+      await storage.delete(key: 'auth_token');
+      await storage.delete(key: 'refresh_token');
+      await storage.delete(key: 'expires_in');
+      await storage.delete(key: 'user_data'); // hapus user cache juga
+      await checkLoginStatus(); // trigger router refresh
+      return res.data['message'] ?? '';
+    } catch (e) {
+      print('DEBUG logout error: $e');
+      if (e is DioError) {
+        print('DEBUG logout error status: ${e.response?.statusCode}');
+        print('DEBUG logout error response: ${e.response?.data}');
+      }
+      rethrow;
+    }
   }
 }

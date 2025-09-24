@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sobi/features/presentation/style/colors.dart';
+import 'package:sobi/features/presentation/style/typography.dart';
 import '../../router/app_routes.dart';
 import '../../provider/auth_provider.dart';
+
 
 class VerifScreen extends StatefulWidget {
   final String email;
@@ -204,31 +207,23 @@ class _VerifScreenState extends State<VerifScreen> {
                   const SizedBox(height: 40),
                   Text(
                     'Verifikasi',
-                    style: TextStyle(
-                      color: Color(0xFF583D74),
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
+                    style: AppTextStyles.heading_4_bold.copyWith(
+                      color: AppColors.primary_90,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Masukkan kode yang kami kirimkan melalui email kepada Anda.',
-                    style: TextStyle(
-                      color: Color(0xFF583D74),
-                      fontSize: 14,
-                      fontFamily: 'Poppins',
+                    style: AppTextStyles.body_4_regular.copyWith(
+                      color: AppColors.primary_90,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
                   Text(
                     timerText,
-                    style: TextStyle(
-                      color: Color(0xFF583D74),
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
+                    style: AppTextStyles.heading_5_bold.copyWith(
+                      color: AppColors.primary_90,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -253,10 +248,8 @@ class _VerifScreenState extends State<VerifScreen> {
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             maxLength: 1,
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF583D74),
+                            style: AppTextStyles.heading_3_bold.copyWith(
+                              color: AppColors.primary_90,
                             ),
                             decoration: const InputDecoration(
                               border: InputBorder.none,
@@ -274,18 +267,16 @@ class _VerifScreenState extends State<VerifScreen> {
                     child: ElevatedButton(
                       onPressed: isVerifying ? null : _verifyOtp,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF583D74),
+                        backgroundColor: AppColors.primary_90,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Daftar',
-                        style: TextStyle(
+                        style: AppTextStyles.body_3_bold.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
                         ),
                       ),
                     ),
@@ -294,23 +285,18 @@ class _VerifScreenState extends State<VerifScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'Saya tidak menerima kode. ',
-                        style: TextStyle(
-                          color: Color(0xFF2E2E2E),
-                          fontSize: 14,
-                          fontFamily: 'Poppins',
+                        style: AppTextStyles.body_4_regular.copyWith(
+                          color: AppColors.primary_90,
                         ),
                       ),
                       GestureDetector(
                         onTap: isVerifying ? null : _resendOtp,
-                        child: const Text(
+                        child: Text(
                           'Kirim ulang',
-                          style: TextStyle(
-                            color: Color(0xFF583D74),
-                            fontSize: 14,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.bold,
+                          style: AppTextStyles.body_4_bold.copyWith(
+                            color: AppColors.primary_90,
                             decoration: TextDecoration.underline,
                           ),
                         ),
@@ -327,3 +313,4 @@ class _VerifScreenState extends State<VerifScreen> {
     );
   }
 }
+              

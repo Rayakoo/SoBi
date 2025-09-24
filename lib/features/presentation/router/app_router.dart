@@ -24,25 +24,44 @@ import '../screens/chat_screen.dart';
 import '../screens/detail_pembayaran_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+// ValueNotifier untuk status login
+final ValueNotifier<bool> isLoggedInNotifier = ValueNotifier<bool>(false);
+
+// Fungsi untuk cek status login dari cache
+Future<void> checkLoginStatus() async {
+  final storage = const FlutterSecureStorage();
+  final token = await storage.read(key: 'auth_token'); // perbaiki key
+  print('[DEBUG checkLoginStatus] token=$token');
+  isLoggedInNotifier.value = token != null && token.isNotEmpty;
+}
+
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.splash,
-    redirect: (BuildContext context, GoRouterState state) async {
-      final storage = const FlutterSecureStorage();
-      final token = await storage.read(key: 'auth_token');
+    refreshListenable: isLoggedInNotifier,
+    redirect: (BuildContext context, GoRouterState state) {
+      // Log untuk debug
+      print(
+        'DEBUG redirect: isLoggedIn=${isLoggedInNotifier.value}, subloc=${state.subloc}',
+      );
       final isSplash = state.subloc == AppRoutes.splash;
-      final isLogin =
-          state.subloc == AppRoutes.login || state.subloc == AppRoutes.register;
+      final isLogin = state.subloc == AppRoutes.login;
+      final isRegister = state.subloc == AppRoutes.register;
+      final isVerify = state.subloc.startsWith(AppRoutes.verif);
 
-      if (token != null && token.isNotEmpty) {
-        // Jika sudah login, cegah balik ke login/register/splash
-        if (isLogin || isSplash) {
+      final isLoggedIn = isLoggedInNotifier.value;
+
+      if (isLoggedIn) {
+        // Jika sudah login, cegah balik ke login/register/splash/verify
+        if (isLogin || isRegister || isSplash || isVerify) {
+          print('Redirecting to: ${AppRoutes.navbar}');
           return AppRoutes.navbar;
         }
-        return null; // selain itu biarkan user bebas ke route lain
+        return null;
       } else {
-        // Jika belum login, hanya boleh ke login/register/splash
-        if (!isLogin && !isSplash) {
+        // Jika belum login, hanya boleh ke login/register/verify/splash
+        if (!isLogin && !isRegister && !isVerify && !isSplash) {
+          print('Redirecting to: ${AppRoutes.login}');
           return AppRoutes.login;
         }
         return null;
@@ -61,12 +80,16 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) {
+          print('DEBUG app_router: register screen');
+          return const RegisterScreen();
+        },
       ),
       GoRoute(
         path: AppRoutes.verif + '/:email',
         builder: (context, state) {
           final email = state.params['email'] ?? '';
+          print('DEBUG app_router: verif_screen email=$email');
           return VerifScreen(email: email);
         },
       ),

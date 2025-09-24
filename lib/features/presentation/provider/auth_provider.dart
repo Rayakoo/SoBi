@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sobi/features/presentation/router/app_router.dart';
 import 'dart:convert';
 import '../../data/models/user_model.dart';
 import '../../data/datasources/auth_datasources.dart';
@@ -56,9 +57,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final result = await signInUsecase(email: email, password: password);
-      token = result['token'];
-      user = result['user']; // hasil getUser setelah login
-      error = null;
+      if (result['token'] != null) {
+        token = result['token'];
+        user = result['user'];
+        error = null;
+        await checkLoginStatus(); // <--- trigger router refresh
+        notifyListeners();
+      } else {
+        error = result['message'] ?? 'Login gagal';
+        notifyListeners();
+      }
     } catch (e) {
       error = e.toString();
     }
