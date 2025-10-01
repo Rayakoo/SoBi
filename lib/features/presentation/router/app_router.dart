@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sobi/features/presentation/provider/education_provider.dart';
 import 'package:sobi/features/presentation/router/app_routes.dart';
-import 'package:sobi/features/presentation/screens/navbar_screen.dart';
+import 'package:sobi/features/presentation/screens/homepage/navbar_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/verif_screen.dart';
 import '../../../splash_screen.dart';
-import '../screens/homepage_screen.dart';
-import '../screens/sobi_quran_screen.dart';
-import '../screens/sobi_goals_screen.dart';
-import '../screens/sobi_time_screen.dart';
+import '../screens/homepage/homepage_screen.dart';
+import '../screens/sobi-quran/sobi_quran_screen.dart';
+import '../screens/sobi-quran/detail-sobi-quran_screens.dart';
+import '../screens/sobi-goals/sobi_goals_screen.dart';
+import '../screens/sobi-belajar/sobi_time_screen.dart';
+import '../screens/sobi-belajar/sobi_time_detail_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/settings_screen.dart';
 import '../screens/profile/profile_view_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/faq_screen.dart';
 import '../screens/profile/about_screen.dart';
-import '../screens/sobi_ai_screen.dart';
-import '../screens/chat_ahli_screen.dart';
-import '../screens/chat_anonim_screen.dart';
-import '../screens/pendengar_curhat_screen.dart';
-import '../screens/chat_screen.dart';
-import '../screens/detail_pembayaran_screen.dart';
+import '../screens/homepage/chat_ai/sobi_ai_screen.dart';
+import '../screens/homepage/chat_ahli/chat_ahli_screen.dart';
+import '../screens/homepage/chat_curhat/chat_anonim_screen.dart';
+import '../screens/homepage/chat_curhat/pendengar_curhat_screen.dart';
+import '../screens/homepage/chat_screen.dart';
+import '../screens/homepage/chat_ahli/detail_pembayaran_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 
 // ValueNotifier untuk status login
 final ValueNotifier<bool> isLoggedInNotifier = ValueNotifier<bool>(false);
@@ -167,166 +171,181 @@ class AppRouter {
           return DetailPembayaranScreen(ahli: ahli);
         },
       ),
-
-      // GoRoute(
-      //   // path: AppRoutes.homepage,
-      //   // builder: (context, state) => const HomePage(),
-      // ),
-
-      // GoRoute(
-      //   path: AppRoutes.activity,
-      //   builder: (BuildContext context, GoRouterState state) {
-      //     return const ActivityScreen();
-      //   },
-      // ),
-      //       GoRoute(
-      //         path: AppRoutes.notification,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const NotificationScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.profile,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const ProfileScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.homepage,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const HomeScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.forgotPassword,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const ForgotPassScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.resetPassword,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           final email = state.extra as String;
-      //           return ResetPasswordScreen(email: email);
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.laporekBar,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const LaporekBar();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.admin,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const AdminScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.beritaAdmin,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const BeritaAdminScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.laporanAdmin,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const LaporanAdminScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.detailLaporanAdmin,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           final laporan = state.extra as Laporan;
-      //           return DetailLaporanAdminScreen(laporan: laporan);
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.detailStatus,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           final laporan = state.extra as Laporan;
-      //           return DetailStatusScreen(laporan: laporan);
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.panggilanOption,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const PanggilanOptionScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.pantauMalang,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const PantauMalangScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.ketentuanKebijakan,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const KetentuanKebijakanScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.gantiPassword,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const GantiPasswordScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: '/deskripsiStatus',
-      //         builder: (context, state) {
-      //           final extra = state.extra as Map<String, dynamic>;
-      //           return DeskripsiStatusScreen(
-      //             imageUrl: extra['imageUrl'],
-      //             date: extra['date'],
-      //             description: extra['description'],
-      //             status: extra['status'],
-      //           );
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.popUpUlasan,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const PopUpUlasanScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.popUpAlamat,
-      //         builder: (context, state) {
-      //           return const PopUpAlamatScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.popUpPanggilan,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           final args = state.extra as Map<String, dynamic>;
-      //           return PopUpPanggilan(
-      //             imagePath: args['imagePath'],
-      //             title: args['title'],
-      //             phoneNumber: args['phoneNumber'],
-      //           );
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.adminPantauMalang,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const AdminPantauMalangScreen();
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.detailBerita,
-      //         builder: (context, state) {
-      //           final berita = state.extra as Berita;
-      //           return DetailBeritaScreen(berita: berita);
-      //         },
-      //       ),
-      //       GoRoute(
-      //         path: AppRoutes.editProfile,
-      //         builder: (BuildContext context, GoRouterState state) {
-      //           return const EditProfileScreen();
-      //         },
-      //       ),
+      GoRoute(
+        path: '/education-detail/:id',
+        builder: (context, state) {
+          final id = state.params['id'] ?? '';
+          // Jangan fetch di router, biar screen yang fetch
+          return SobiTimeDetailScreen(educationId: id);
+        },
+      ),
+      GoRoute(
+        path: '/sobi-quran-detail/:id',
+        builder: (context, state) {
+          final id = int.tryParse(state.params['id'] ?? '') ?? 1;
+          return DetailSobiQuranScreen(suratId: id);
+        },
+      ),
     ],
+    // GoRoute(
+    //   // path: AppRoutes.homepage,
+    //   // builder: (context, state) => const HomePage(),
+    // ),
+
+    // GoRoute(
+    //   path: AppRoutes.activity,
+    //   builder: (BuildContext context, GoRouterState state) {
+    //     return const ActivityScreen();
+    //   },
+    // ),
+    //       GoRoute(
+    //         path: AppRoutes.notification,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const NotificationScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.profile,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const ProfileScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.homepage,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const HomeScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.forgotPassword,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const ForgotPassScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.resetPassword,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           final email = state.extra as String;
+    //           return ResetPasswordScreen(email: email);
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.laporekBar,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const LaporekBar();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.admin,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const AdminScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.beritaAdmin,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const BeritaAdminScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.laporanAdmin,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const LaporanAdminScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.detailLaporanAdmin,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           final laporan = state.extra as Laporan;
+    //           return DetailLaporanAdminScreen(laporan: laporan);
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.detailStatus,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           final laporan = state.extra as Laporan;
+    //           return DetailStatusScreen(laporan: laporan);
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.panggilanOption,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const PanggilanOptionScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.pantauMalang,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const PantauMalangScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.ketentuanKebijakan,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const KetentuanKebijakanScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.gantiPassword,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const GantiPasswordScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: '/deskripsiStatus',
+    //         builder: (context, state) {
+    //           final extra = state.extra as Map<String, dynamic>;
+    //           return DeskripsiStatusScreen(
+    //             imageUrl: extra['imageUrl'],
+    //             date: extra['date'],
+    //             description: extra['description'],
+    //             status: extra['status'],
+    //           );
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.popUpUlasan,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const PopUpUlasanScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.popUpAlamat,
+    //         builder: (context, state) {
+    //           return const PopUpAlamatScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.popUpPanggilan,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           final args = state.extra as Map<String, dynamic>;
+    //           return PopUpPanggilan(
+    //             imagePath: args['imagePath'],
+    //             title: args['title'],
+    //             phoneNumber: args['phoneNumber'],
+    //           );
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.adminPantauMalang,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const AdminPantauMalangScreen();
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.detailBerita,
+    //         builder: (context, state) {
+    //           final berita = state.extra as Berita;
+    //           return DetailBeritaScreen(berita: berita);
+    //         },
+    //       ),
+    //       GoRoute(
+    //         path: AppRoutes.editProfile,
+    //         builder: (BuildContext context, GoRouterState state) {
+    //           return const EditProfileScreen();
+    //         },
+    //       ),
+
     //     errorBuilder: (context, state) {
     //       print('Page not found: ${state.subloc}');
     //       return Scaffold(body: Center(child: Text('Page not found')));

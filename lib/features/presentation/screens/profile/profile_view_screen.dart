@@ -18,6 +18,23 @@ class ProfileViewScreen extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final profilePicSize = 100.0;
 
+    // Avatar asset mapping
+    String avatarAsset = 'assets/profil/Profil 1.png';
+    if (user?.avatar != null && user!.avatar!=0) {
+      avatarAsset = 'assets/profil/Profil ${user?.avatar}.png';
+    }
+
+    // Gender mapping
+    String genderText = '-';
+    if (user?.gender != null) {
+      final g = user?.gender?.toLowerCase();
+      if (g == 'male') {
+        genderText = 'Ikhwan';
+      } else if (g == 'female') {
+        genderText = 'Akhwat';
+      }
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -27,7 +44,7 @@ class ProfileViewScreen extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 300),
+                  const SizedBox(height: 320),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child:
@@ -41,16 +58,21 @@ class ProfileViewScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 _ProfileField(
+                                  label: 'Nama Pengguna',
+                                  value: user.username ?? '-',
+                                ),
+                                const SizedBox(height: 16),
+                                _GenderField(selected: genderText),
+                                const SizedBox(height: 16),
+                                _ProfileField(
                                   label: 'Email',
                                   value: user.email,
                                 ),
                                 const SizedBox(height: 16),
                                 _ProfileField(
-                                  label: 'Role',
-                                  value: user.userRole ?? '-',
+                                  label: 'Nomor Telepon',
+                                  value: user.phoneNumber ?? '',
                                 ),
-                                const SizedBox(height: 16),
-                                _ProfileField(label: 'ID', value: user.id),
                                 const SizedBox(height: 30),
                                 SizedBox(
                                   width: double.infinity,
@@ -106,11 +128,16 @@ class ProfileViewScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: profilePicSize / 2,
                         backgroundColor: Colors.white,
-                        child: SvgPicture.asset(
-                          'assets/svg/avatar.svg',
-                          width: profilePicSize * 0.7,
-                          height: profilePicSize * 0.7,
-                          fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            profilePicSize / 2,
+                          ),
+                          child: Image.asset(
+                            avatarAsset,
+                            width: profilePicSize * 0.7,
+                            height: profilePicSize * 0.7,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       Positioned(
@@ -241,6 +268,17 @@ class _GenderField extends StatelessWidget {
                 width: 2,
               ),
               borderRadius: BorderRadius.circular(10),
+              boxShadow:
+                  selected == 'Akhwat'
+                      ? [
+                        BoxShadow(
+                          color: AppColors.primary_90.withOpacity(0.15),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : [],
             ),
             child: Center(
               child: Text(
@@ -269,6 +307,17 @@ class _GenderField extends StatelessWidget {
                 width: 2,
               ),
               borderRadius: BorderRadius.circular(10),
+              boxShadow:
+                  selected == 'Ikhwan'
+                      ? [
+                        BoxShadow(
+                          color: AppColors.primary_90.withOpacity(0.15),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : [],
             ),
             child: Center(
               child: Text(
@@ -284,3 +333,4 @@ class _GenderField extends StatelessWidget {
     );
   }
 }
+

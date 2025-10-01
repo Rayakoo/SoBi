@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sobi/features/presentation/style/colors.dart';
 import 'package:sobi/features/presentation/style/typography.dart';
 import '../../router/app_routes.dart';
@@ -21,8 +22,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController setPasswordController = TextEditingController();
 
+  bool agreeTerms = false;
+
+  bool get isFormValid =>
+      emailController.text.isNotEmpty &&
+      namaController.text.isNotEmpty &&
+      telpController.text.isNotEmpty &&
+      passwordController.text.isNotEmpty &&
+      setPasswordController.text.isNotEmpty &&
+      agreeTerms;
+
+  @override
+  void initState() {
+    super.initState();
+    namaController.addListener(_updateState);
+    emailController.addListener(_updateState);
+    telpController.addListener(_updateState);
+    passwordController.addListener(_updateState);
+    setPasswordController.addListener(_updateState);
+  }
+
+  void _updateState() {
+    // Pastikan setState hanya dipanggil jika widget masih mounted
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    namaController.removeListener(_updateState);
+    emailController.removeListener(_updateState);
+    telpController.removeListener(_updateState);
+    passwordController.removeListener(_updateState);
+    setPasswordController.removeListener(_updateState);
+    super.dispose();
+  }
+
   void _register() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!agreeTerms) {
+      Fluttertoast.showToast(msg: 'Anda harus menyetujui syarat dan ketentuan');
+      return;
+    }
+    if (passwordController.text != setPasswordController.text) {
+      Fluttertoast.showToast(msg: 'Password dan ulangi password tidak sama');
+      return;
+    }
+    if (emailController.text.isEmpty ||
+        namaController.text.isEmpty ||
+        telpController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        setPasswordController.text.isEmpty) {
+      Fluttertoast.showToast(msg: 'Semua field harus diisi');
+      return;
+    }
     await authProvider.signUp(
       emailController.text,
       namaController.text,
@@ -30,12 +82,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       passwordController.text,
     );
     if (authProvider.error == null) {
-      // Operkan email ke verif screen sebagai path param
+      Fluttertoast.showToast(msg: 'Registrasi berhasil');
       context.go('${AppRoutes.verif}/${emailController.text}');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.error ?? 'Register gagal')),
-      );
+      Fluttertoast.showToast(msg: authProvider.error ?? 'Register gagal');
     }
   }
 
@@ -48,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           clipBehavior: Clip.none,
           children: [
             Positioned(
-              top: -80,
+              top: 0,
               left: -10,
               right: 0,
               child: SizedBox(
@@ -66,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 100),
                     Text(
                       'Daftar',
                       style: AppTextStyles.heading_4_bold.copyWith(
@@ -79,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: Colors.white.withOpacity(0.7),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 60),
                     // Nama
                     _RegisterField(
                       label: 'Nama',
@@ -117,14 +167,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hint: 'Kata sandi',
                       obscureText: true,
                     ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: agreeTerms,
+                          onChanged: (val) {
+                            setState(() => agreeTerms = true ?? false);
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Saya menyetujui syarat dan ketentuan',
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: AppColors.primary_90,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 30),
                     GestureDetector(
-                      onTap: _register,
-                      child: Container(
+                      onTap: isFormValid ? _register : null,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
                         width: double.infinity,
                         height: 56,
                         decoration: ShapeDecoration(
-                          color: AppColors.primary_90,
+                          color:
+                              isFormValid
+                                  ? AppColors.primary_90
+                                  : AppColors.default_70,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),

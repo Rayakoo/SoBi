@@ -20,4 +20,11 @@ abstract class AuthRepository {
   Future<UserModel> getUser();
 
   Future<String> logout();
+
+  Future<String> updateUserProfile({
+    required String username,
+    required String gender,
+    required String phoneNumber,
+    required int avatar,
+  });
 }

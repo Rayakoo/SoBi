@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sobi/features/presentation/style/colors.dart';
 import 'package:sobi/features/presentation/style/typography.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../router/app_routes.dart';
 import '../../provider/auth_provider.dart';
-
 
 class VerifScreen extends StatefulWidget {
   final String email;
@@ -28,16 +28,24 @@ class _VerifScreenState extends State<VerifScreen> {
   late final PageController pageController;
   bool isVerifying = false;
 
+  bool get isOtpValid => otpFields.every((c) => c.text.isNotEmpty);
+
   @override
   void initState() {
     super.initState();
     pageController = PageController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authProvider = Provider.of<AuthProvider>(context, listen: false);
-      // Ambil email dari widget parameter
       email = widget.email;
     });
+    for (final c in otpFields) {
+      c.addListener(_updateState);
+    }
     _startTimer();
+  }
+
+  void _updateState() {
+    setState(() {});
   }
 
   void _startTimer() {
@@ -69,16 +77,18 @@ class _VerifScreenState extends State<VerifScreen> {
 
   Future<void> _verifyOtp() async {
     final otp = otpFields.map((c) => c.text).join();
-    if (otp.length != 4) return;
+    if (otp.length != 4) {
+      Fluttertoast.showToast(msg: 'Kode OTP harus 4 digit');
+      return;
+    }
     setState(() => isVerifying = true);
     try {
-      await authProvider.verifyOtp(email ?? '', otp); // Email dari parameter
+      await authProvider.verifyOtp(email ?? '', otp);
       if (authProvider.error == null) {
+        Fluttertoast.showToast(msg: 'Verifikasi berhasil');
         _showSuccessDialog();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.error ?? 'Verifikasi gagal')),
-        );
+        Fluttertoast.showToast(msg: authProvider.error ?? 'Verifikasi gagal');
       }
     } finally {
       setState(() => isVerifying = false);
@@ -88,7 +98,7 @@ class _VerifScreenState extends State<VerifScreen> {
   Future<void> _resendOtp() async {
     setState(() => isVerifying = true);
     try {
-      await authProvider.verifyOtp(email ?? '', ''); // Email dari parameter
+      await authProvider.verifyOtp(email ?? '', '');
       _startTimer();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Kode OTP telah dikirim ulang')),
@@ -181,13 +191,22 @@ class _VerifScreenState extends State<VerifScreen> {
   }
 
   @override
+  void dispose() {
+    for (final c in otpFields) {
+      c.removeListener(_updateState);
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true, // pastikan ini true
       body: Stack(
         children: [
           Positioned(
-            top: -80,
+            top: 0,
             left: -10,
             right: 0,
             child: SizedBox(
@@ -200,112 +219,148 @@ class _VerifScreenState extends State<VerifScreen> {
             ),
           ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  Text(
-                    'Verifikasi',
-                    style: AppTextStyles.heading_4_bold.copyWith(
-                      color: AppColors.primary_90,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Masukkan kode yang kami kirimkan melalui email kepada Anda.',
-                    style: AppTextStyles.body_4_regular.copyWith(
-                      color: AppColors.primary_90,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    timerText,
-                    style: AppTextStyles.heading_5_bold.copyWith(
-                      color: AppColors.primary_90,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(4, (idx) {
-                      return Container(
-                        width: 56,
-                        height: 56,
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: BoxDecoration(
-                          color: Color(0xFFD8CDE4),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Color(0xFF3F2C53),
-                            width: 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: TextField(
-                            controller: otpFields[idx],
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            maxLength: 1,
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 60),
+                          Text(
+                            'Verifikasi',
                             style: AppTextStyles.heading_3_bold.copyWith(
-                              color: AppColors.primary_90,
+                              color: AppColors.default_10,
                             ),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              counterText: '',
-                            ),
-                            onChanged: (val) => _onOtpChanged(idx, val),
                           ),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: isVerifying ? null : _verifyOtp,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary_90,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        'Daftar',
-                        style: AppTextStyles.body_3_bold.copyWith(
-                          color: Colors.white,
-                        ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Masukkan kode yang kami kirimkan melalui email kepada Anda.',
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: AppColors.default_30,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 48),
+                          Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    timerText,
+                                    style: AppTextStyles.heading_5_bold
+                                        .copyWith(color: AppColors.primary_90),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: List.generate(4, (idx) {
+                                      return Container(
+                                        width: 56,
+                                        height: 56,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFFD8CDE4),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: Color(0xFF3F2C53),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: TextField(
+                                            controller: otpFields[idx],
+                                            keyboardType: TextInputType.number,
+                                            textAlign: TextAlign.center,
+                                            maxLength: 1,
+                                            style: AppTextStyles.heading_3_bold
+                                                .copyWith(
+                                                  color: AppColors.primary_90,
+                                                ),
+                                            decoration: const InputDecoration(
+                                              border: InputBorder.none,
+                                              counterText: '',
+                                            ),
+                                            onChanged:
+                                                (val) =>
+                                                    _onOtpChanged(idx, val),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                  const SizedBox(height: 32),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          isVerifying || !isOtpValid
+                                              ? null
+                                              : _verifyOtp,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            isVerifying || !isOtpValid
+                                                ? AppColors.default_70
+                                                : AppColors.primary_90,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Daftar',
+                                        style: AppTextStyles.body_3_bold
+                                            .copyWith(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Spacer dihapus, agar bagian bawah tidak ikut naik saat keyboard muncul
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Saya tidak menerima kode. ',
+                                style: AppTextStyles.body_4_regular.copyWith(
+                                  color: AppColors.primary_90,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: isVerifying ? null : _resendOtp,
+                                child: Text(
+                                  'Kirim ulang',
+                                  style: AppTextStyles.body_4_bold.copyWith(
+                                    color: AppColors.primary_90,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ),
                     ),
                   ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Saya tidak menerima kode. ',
-                        style: AppTextStyles.body_4_regular.copyWith(
-                          color: AppColors.primary_90,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: isVerifying ? null : _resendOtp,
-                        child: Text(
-                          'Kirim ulang',
-                          style: AppTextStyles.body_4_bold.copyWith(
-                            color: AppColors.primary_90,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -313,4 +368,3 @@ class _VerifScreenState extends State<VerifScreen> {
     );
   }
 }
-              

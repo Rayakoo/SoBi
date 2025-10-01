@@ -1,18 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:sobi/features/presentation/screens/navbar_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:sobi/features/presentation/screens/homepage/navbar_screen.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 import '../../style/colors.dart';
 import '../../style/typography.dart';
 import 'package:go_router/go_router.dart';
 import '../../router/app_routes.dart';
 import 'package:provider/provider.dart';
 import '../../provider/auth_provider.dart';
+import 'package:sobi/features/presentation/provider/education_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _historyFetched = false;
 
   void _goToNavbar(int index) {
     NavbarController.currentIndex.value = index;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Fetch hanya sekali saat widget pertama kali build
+    if (!_historyFetched) {
+      final educationProvider = Provider.of<EducationProvider>(
+        context,
+        listen: false,
+      );
+      print('[SCREEN] call fetchEducationHistory');
+      educationProvider.fetchEducationHistory();
+      _historyFetched = true;
+    }
   }
 
   @override
@@ -22,9 +47,19 @@ class ProfileScreen extends StatelessWidget {
       authProvider.fetchUser();
     }
     final username = authProvider.user?.username ?? '...';
+    final avatar = authProvider.user?.avatar ?? 1;
+    final avatarAsset = 'assets/profil/Profil $avatar.png';
     final screenWidth = MediaQuery.of(context).size.width;
     final bentoHeight = 160.0;
     final profilePicSize = 100.0;
+    final educationProvider = Provider.of<EducationProvider>(context);
+    final history = educationProvider.educationHistory.take(3).toList();
+    print(
+      '[SCREEN] educationHistory count: ${educationProvider.educationHistory.length}',
+    );
+    for (var i = 0; i < educationProvider.educationHistory.length; i++) {
+      print('[SCREEN] history[$i]: ${educationProvider.educationHistory[i]}');
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -36,7 +71,6 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 300),
-                  // Capaian Ibadah
                   Text(
                     'Capaian Ibadah',
                     style: AppTextStyles.heading_5_bold.copyWith(
@@ -49,46 +83,70 @@ class ProfileScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Row(
                       children: [
-                        // Progress Harian (Pie Chart)
+                        // Progress Harian (CircularPercentIndicator)
                         Container(
-                          width: screenWidth * 0.52,
-                          height: bentoHeight,
+                          width: MediaQuery.of(context).size.width * 0.52,
+                          height: 200,
                           decoration: BoxDecoration(
-                            color: AppColors.primary_10,
+                            color: const Color(0xFFE6DAF0),
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Pie Chart Dummy
-                              SizedBox(
-                                height: 60,
-                                width: 60,
-                                child: Stack(
-                                  alignment: Alignment.center,
+                              CircularPercentIndicator(
+                                radius: 60.0,
+                                lineWidth: 10.0,
+                                percent: 0.65,
+                                progressColor: AppColors.primary_90,
+                                backgroundColor: AppColors.primary_30
+                                    .withOpacity(0.3),
+                                circularStrokeCap: CircularStrokeCap.round,
+                                center: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    CircularProgressIndicator(
-                                      value: 0.65,
-                                      strokeWidth: 8,
-                                      backgroundColor: AppColors.primary_30,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.primary_90,
-                                      ),
-                                    ),
                                     Text(
-                                      'Yuk, lengkapi \n ibadahmu!',
-                                      style: AppTextStyles.body_4_bold.copyWith(
-                                        color: AppColors.primary_90,
-                                      ),
+                                      "65%",
+                                      style: AppTextStyles.heading_5_bold
+                                          .copyWith(
+                                            color: AppColors.primary_90,
+                                            fontSize: 22,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Yuk, lengkapi\nProgresmu",
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.body_4_regular
+                                          .copyWith(
+                                            color: AppColors.primary_90,
+                                          ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Progres Harian',
-                                style: AppTextStyles.body_4_bold.copyWith(
-                                  color: AppColors.primary_90,
+                              const SizedBox(height: 24),
+                              // Tombol Target Hijrah
+                              ElevatedButton(
+                                onPressed: () {
+                                  // TODO: navigasi ke target hijrah
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary_90,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 0,
+                                    horizontal: 24,
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  "Target Hijrah",
+                                  style: AppTextStyles.body_4_bold.copyWith(
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
@@ -103,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
                               GestureDetector(
                                 onTap: () => _goToNavbar(1),
                                 child: Container(
-                                  height: bentoHeight * 0.48,
+                                  height: bentoHeight * 0.57,
                                   width: screenWidth * 0.48,
                                   decoration: BoxDecoration(
                                     color: AppColors.primary_10,
@@ -129,15 +187,15 @@ class ProfileScreen extends StatelessWidget {
                                               'Al-Maidah : 48',
                                               style: AppTextStyles.body_4_bold
                                                   .copyWith(
-                                                color: AppColors.primary_90,
-                                              ),
+                                                    color: AppColors.primary_90,
+                                                  ),
                                             ),
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 2,
-                                              ),
+                                                    horizontal: 8,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.primary_30,
                                                 borderRadius:
@@ -148,8 +206,8 @@ class ProfileScreen extends StatelessWidget {
                                                 style: AppTextStyles
                                                     .body_5_regular
                                                     .copyWith(
-                                                  color: Colors.white,
-                                                ),
+                                                      color: Colors.white,
+                                                    ),
                                               ),
                                             ),
                                           ],
@@ -165,7 +223,7 @@ class ProfileScreen extends StatelessWidget {
                               GestureDetector(
                                 onTap: () => _goToNavbar(3),
                                 child: Container(
-                                  height: bentoHeight * 0.48,
+                                  height: bentoHeight * 0.57,
                                   width: screenWidth * 0.48,
                                   decoration: BoxDecoration(
                                     color: AppColors.primary_10,
@@ -186,8 +244,8 @@ class ProfileScreen extends StatelessWidget {
                                               'Titik Belajar',
                                               style: AppTextStyles.body_4_bold
                                                   .copyWith(
-                                                color: AppColors.primary_90,
-                                              ),
+                                                    color: AppColors.primary_90,
+                                                  ),
                                             ),
                                             Row(
                                               children: [
@@ -212,9 +270,10 @@ class ProfileScreen extends StatelessWidget {
                                                   style: AppTextStyles
                                                       .body_5_regular
                                                       .copyWith(
-                                                    color:
-                                                        AppColors.primary_90,
-                                                  ),
+                                                        color:
+                                                            AppColors
+                                                                .primary_90,
+                                                      ),
                                                 ),
                                               ],
                                             ),
@@ -247,34 +306,29 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Card List
+                  // Card List dari educationProvider.history
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Column(
                       children: [
-                        _RiwayatCard(
-                          image: 'assets/logo/Logo.png',
-                          title: 'Cukup Aku, Kamu, dan Halal !!!',
-                          desc:
-                              'Sahabat Cahaya, mendekati zina saja kita sudah dilarang, apalagi melakukannya. Dalam hal ini berpacaran bisa menjadi salah satu pintu untuk...',
-                          date: '12 Mar 2025',
-                        ),
-                        const SizedBox(height: 12),
-                        _RiwayatCard(
-                          image: 'assets/logo/Logo.png',
-                          title: 'Hilang Untuk Healing',
-                          desc:
-                              'Dalam Islam, ketenangan sejati tak datang dari pelarian, tapi dari taqarrub-mendekat dengan Allah.',
-                          date: '2 Mar 2025',
-                        ),
-                        const SizedBox(height: 12),
-                        _RiwayatCard(
-                          image: 'assets/logo/Logo.png',
-                          title: 'Kamu Sibuk, Tapi Gak Jelas Arahnya',
-                          desc:
-                              'Waktu sibuk tapi gak jelas arahnya - apakah itu yang juga kamu rasakan? Dalam Islam, kesibukan tanpa tujuan yang jelas adalah sesuatu yang sia-sia.',
-                          date: '2 Mar 2025',
-                        ),
+                        for (var i = 0; i < history.length; i++) ...[
+                          _RiwayatCard(
+                            image: getYoutubeThumbnail(history[i].videoUrl),
+                            title: history[i].title,
+                            desc: history[i].description,
+                            date: DateFormat(
+                              'd MMM yyyy',
+                            ).format(history[i].createdAt),
+                            onTap: () {
+                              // Gunakan go_router push ke sobi time detail
+                              context.push(
+                                '/education-detail/${history[i].id}',
+                              );
+                            },
+                          ),
+                          if (i < history.length - 1)
+                            const SizedBox(height: 12),
+                        ],
                       ],
                     ),
                   ),
@@ -308,11 +362,16 @@ class ProfileScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: profilePicSize / 2,
                         backgroundColor: Colors.white,
-                        child: SvgPicture.asset(
-                          'assets/svg/avatar.svg',
-                          width: profilePicSize * 0.7,
-                          height: profilePicSize * 0.7,
-                          fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            profilePicSize / 2,
+                          ),
+                          child: Image.asset(
+                            avatarAsset,
+                            width: profilePicSize * 0.7,
+                            height: profilePicSize * 0.7,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       Positioned(
@@ -356,35 +415,36 @@ class ProfileScreen extends StatelessWidget {
             top: 38,
             right: 28,
             child: Builder(
-              builder: (context) => GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  print('[DEBUG] Settings button tapped');
-                  if (GoRouter.of(context).location != AppRoutes.settings) {
-                    print('[DEBUG] Navigating to settings...');
-                    context.push(AppRoutes.settings);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary_10.withOpacity(0.2),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
+              builder:
+                  (context) => GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      print('[DEBUG] Settings button tapped');
+                      if (GoRouter.of(context).location != AppRoutes.settings) {
+                        print('[DEBUG] Navigating to settings...');
+                        context.push(AppRoutes.settings);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary_10.withOpacity(0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ],
+                      child: const Icon(
+                        Icons.settings,
+                        color: AppColors.primary_90,
+                        size: 24,
+                      ),
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.settings,
-                    color: AppColors.primary_90,
-                    size: 24,
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -398,79 +458,108 @@ class _RiwayatCard extends StatelessWidget {
   final String title;
   final String desc;
   final String date;
+  final VoidCallback? onTap;
 
   const _RiwayatCard({
     required this.image,
     required this.title,
     required this.desc,
     required this.date,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.primary_30, width: 2),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary_10.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(14),
-              bottomLeft: Radius.circular(14),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.primary_30, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary_10.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: Image.asset(image, width: 60, height: 60, fit: BoxFit.cover),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: AppTextStyles.body_3_bold.copyWith(
-                            color: AppColors.primary_90,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        date,
-                        style: AppTextStyles.body_5_regular.copyWith(
-                          color: AppColors.default_90,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    desc,
-                    style: AppTextStyles.body_5_regular.copyWith(
-                      color: AppColors.primary_90,
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                bottomLeft: Radius.circular(14),
+              ),
+              child: Image.network(
+                image,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (_, __, ___) => Container(
+                      color: AppColors.default_30,
+                      width: 60,
+                      height: 60,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: AppTextStyles.body_3_bold.copyWith(
+                              color: AppColors.primary_90,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          date,
+                          style: AppTextStyles.body_5_regular.copyWith(
+                            color: AppColors.default_90,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      desc,
+                      style: AppTextStyles.body_5_regular.copyWith(
+                        color: AppColors.primary_90,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+// Fungsi ambil thumbnail dari url YouTube
+String getYoutubeThumbnail(String url) {
+  Uri uri = Uri.parse(url);
+  if (uri.host.contains('youtu.be')) {
+    return "https://img.youtube.com/vi/${uri.pathSegments.first}/hqdefault.jpg";
+  } else {
+    return "https://img.youtube.com/vi/${uri.queryParameters['v']}/hqdefault.jpg";
   }
 }

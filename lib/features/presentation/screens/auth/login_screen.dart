@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sobi/features/presentation/style/colors.dart';
 import 'package:sobi/features/presentation/style/typography.dart';
 import '../../router/app_routes.dart';
@@ -18,22 +21,62 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  bool get isFormValid =>
+      emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(_updateState);
+    passwordController.addListener(_updateState);
+  }
+
+  void _updateState() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    emailController.removeListener(_updateState);
+    passwordController.removeListener(_updateState);
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   void _login() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    print(
-      'DEBUG login_screen: email=${emailController.text}, password=${passwordController.text}',
-    );
+    if (!isFormValid) {
+      Fluttertoast.showToast(msg: 'Email dan password harus diisi');
+      return;
+    }
     await authProvider.signIn(emailController.text, passwordController.text);
-    print(
-      'DEBUG login_screen: token=${authProvider.token}, user=${authProvider.user}',
-    );
+    // Ambil error dari backend jika ada, bukan dari DioException
+    String errorMsg = '';
+    if (authProvider.error != null) {
+      // Coba ambil pesan error dari backend jika formatnya Map
+      if (authProvider.error is Map<String, dynamic>) {
+        errorMsg =
+            (authProvider.error as Map<String, dynamic>)['error']?.toString() ??
+            '';
+      } else {
+        errorMsg = authProvider.error.toString();
+        // Coba parse jika errorMsg adalah JSON string
+        try {
+          final decoded =
+              errorMsg.startsWith('{') ? jsonDecode(errorMsg) : null;
+          if (decoded != null && decoded is Map && decoded['error'] != null) {
+            errorMsg = decoded['error'].toString();
+          }
+        } catch (_) {}
+      }
+    }
     if (authProvider.token != null && authProvider.user != null) {
-      // Tidak perlu panggil checkLoginStatus di sini, sudah di AuthProvider
+      Fluttertoast.showToast(msg: 'Login berhasil');
       context.go(AppRoutes.navbar);
     } else {
-      print('DEBUG login_screen: error=${authProvider.error}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.error ?? 'Login gagal')),
+      Fluttertoast.showToast(
+        msg: errorMsg.isNotEmpty ? errorMsg : 'Login gagal',
       );
     }
   }
@@ -117,9 +160,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: 'Email',
-                                  hintStyle: AppTextStyles.body_3_regular.copyWith(
-                                    color: AppColors.default_90,
-                                  ),
+                                  hintStyle: AppTextStyles.body_3_regular
+                                      .copyWith(color: AppColors.default_90),
                                 ),
                                 style: AppTextStyles.body_3_medium.copyWith(
                                   color: AppColors.primary_90,
@@ -170,9 +212,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: 'Kata sandi',
-                                  hintStyle: AppTextStyles.body_3_regular.copyWith(
-                                    color: AppColors.default_90,
-                                  ),
+                                  hintStyle: AppTextStyles.body_3_regular
+                                      .copyWith(color: AppColors.default_90),
                                 ),
                                 style: AppTextStyles.body_3_medium.copyWith(
                                   color: AppColors.primary_90,
@@ -196,12 +237,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
                     // Login Button
                     GestureDetector(
-                      onTap: _login,
+                      onTap: isFormValid ? _login : null,
                       child: Container(
                         width: double.infinity,
                         height: 56,
                         decoration: ShapeDecoration(
-                          color: AppColors.primary_90,
+                          color:
+                              isFormValid
+                                  ? AppColors.primary_90
+                                  : AppColors.default_70,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -381,4 +425,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-                        

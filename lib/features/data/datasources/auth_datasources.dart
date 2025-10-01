@@ -51,10 +51,7 @@ class AuthDatasources {
       return res.data['message'] ?? '';
     } catch (e) {
       print('DEBUG signup error: $e');
-      if (e is DioError) {
-        print('DEBUG signup error status: ${e.response?.statusCode}');
-        print('DEBUG signup error response: ${e.response?.data}');
-      }
+
       rethrow;
     }
   }
@@ -71,10 +68,7 @@ class AuthDatasources {
       return res.data['message'] ?? '';
     } catch (e) {
       print('DEBUG verifyOtp error: $e');
-      if (e is DioError) {
-        print('DEBUG verifyOtp error status: ${e.response?.statusCode}');
-        print('DEBUG verifyOtp error response: ${e.response?.data}');
-      }
+
       rethrow;
     }
   }
@@ -141,10 +135,7 @@ class AuthDatasources {
       }
     } catch (e) {
       print('DEBUG signin error: $e');
-      if (e is DioError) {
-        print('DEBUG signin error status: ${e.response?.statusCode}');
-        print('DEBUG signin error response: ${e.response?.data}');
-      }
+
       rethrow;
     }
   }
@@ -177,7 +168,13 @@ class AuthDatasources {
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     print('[DEBUG getUser] response=${res.data}');
-    return UserModel.fromJson(res.data);
+    // Pastikan response sudah berisi gender dan avatar
+    // Jika API mengembalikan data di dalam 'data', gunakan res.data['data']
+    final userJson =
+        res.data is Map<String, dynamic> && res.data.containsKey('data')
+            ? res.data['data']
+            : res.data;
+    return UserModel.fromJson(userJson);
   }
 
   // Fetch user dari API dan update cache
@@ -191,15 +188,39 @@ class AuthDatasources {
     }
   }
 
-  // Update user profile
-  Future<String> updateUser({required String username}) async {
+  // Update user profile (multi-field)
+  Future<String> updateUserProfile({
+    required String username,
+    required String gender,
+    required String phoneNumber,
+    required int avatar,
+  }) async {
     final token = await getToken();
-    final res = await dio.put(
-      '$baseUrl/user/profile',
-      data: {'username': username},
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    final payload = {
+      'username': username,
+      'gender': gender,
+      'phone_number': phoneNumber,
+      'avatar': avatar,
+    };
+    print('[DEBUG updateUserProfile dtasource] BASE_URL: $baseUrl');
+    print(
+      '[DEBUG updateUserProfile dtasource] ENDPOINT: $baseUrl/user/profile',
     );
-    return res.data['message'] ?? '';
+    print('[DEBUG updateUserProfile dtasource] TOKEN: $token');
+    print('[DEBUG updateUserProfile dtasource] PAYLOAD: $payload');
+    try {
+      final res = await dio.put(
+        '$baseUrl/user/profile',
+        data: payload,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      print('[DEBUG updateUserProfile] RESPONSE: ${res.data}');
+      await fetchAndCacheUser();
+      return res.data['message'] ?? '';
+    } catch (e) {
+      print('[DEBUG updateUserProfile] ERROR: $e');
+      rethrow;
+    }
   }
 
   // Logout
@@ -222,10 +243,7 @@ class AuthDatasources {
       return res.data['message'] ?? '';
     } catch (e) {
       print('DEBUG logout error: $e');
-      if (e is DioError) {
-        print('DEBUG logout error status: ${e.response?.statusCode}');
-        print('DEBUG logout error response: ${e.response?.data}');
-      }
+
       rethrow;
     }
   }

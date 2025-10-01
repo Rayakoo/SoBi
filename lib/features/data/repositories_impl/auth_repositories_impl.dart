@@ -48,4 +48,19 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String> logout() {
     return datasource.logout();
   }
+
+  @override
+  Future<String> updateUserProfile({
+    required String username,
+    required String gender,
+    required String phoneNumber,
+    required int avatar,
+  }) {
+    return datasource.updateUserProfile(
+      username: username,
+      gender: gender,
+      phoneNumber: phoneNumber,
+      avatar: avatar,
+    );
+  }
 }

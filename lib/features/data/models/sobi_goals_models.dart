@@ -25,12 +25,19 @@ class UserGoalModel {
   });
 
   factory UserGoalModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic value) {
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return UserGoalModel(
       id: json['id'],
       userId: json['user_id'],
       goalCategory: json['goal_category'],
       status: json['status'],
-      currentDay: json['current_day'],
+      currentDay: toInt(json['current_day']),
       startDate: DateTime.parse(json['start_date']),
       targetEndDate: DateTime.parse(json['target_end_date']),
       createdAt: DateTime.parse(json['created_at']),
@@ -68,9 +75,16 @@ class MissionModel {
   });
 
   factory MissionModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic value) {
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return MissionModel(
       id: json['id'],
-      dayNumber: json['day_number'],
+      dayNumber: toInt(json['day_number']),
       focus: json['focus'],
       category: json['category'],
     );
@@ -138,6 +152,22 @@ class ProgressModel {
   });
 
   factory ProgressModel.fromJson(Map<String, dynamic> json) {
+    int? toInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    double? toDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
     return ProgressModel(
       id: json['id'],
       userGoalId: json['user_goal_id'],
@@ -149,12 +179,9 @@ class ProgressModel {
           json['completed_at'] != null
               ? DateTime.tryParse(json['completed_at'])
               : null,
-      totalTasks: json['total_tasks'],
-      completedTasks: json['completed_tasks'],
-      completionPercentage:
-          (json['completion_percentage'] is num)
-              ? (json['completion_percentage'] as num).toDouble()
-              : null,
+      totalTasks: toInt(json['total_tasks']),
+      completedTasks: toInt(json['completed_tasks']),
+      completionPercentage: toDouble(json['completion_percentage']),
       createdAt:
           json['created_at'] != null
               ? DateTime.tryParse(json['created_at'])
@@ -240,28 +267,58 @@ class MissionWithTasksModel {
   }
 }
 
+// PreviousDayModel
+class PreviousDayModel {
+  final int dayIndex;
+  final bool isCompleted;
+
+  PreviousDayModel({required this.dayIndex, required this.isCompleted});
+
+  factory PreviousDayModel.fromJson(Map<String, dynamic> json) {
+    return PreviousDayModel(
+      dayIndex: json['day_index'] ?? 0,
+      isCompleted: json['is_completed'] ?? false,
+    );
+  }
+}
+
 // TodayMissionModel
 class TodayMissionModel {
   final UserGoalModel userGoal;
   final int dayIndex;
   final List<MissionWithTasksModel> missions;
+  final List<PreviousDayModel> previousDays;
 
   TodayMissionModel({
     required this.userGoal,
     required this.dayIndex,
     required this.missions,
+    required this.previousDays,
   });
 
   factory TodayMissionModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic value) {
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return TodayMissionModel(
       userGoal: UserGoalModel.fromJson(json['user_goal']),
-      dayIndex: json['day_index'],
+      dayIndex: toInt(json['day_index']),
       missions:
           (json['missions'] is List && json['missions'] != null)
               ? (json['missions'] as List)
                   .map((e) => MissionWithTasksModel.fromJson(e))
                   .toList()
               : <MissionWithTasksModel>[],
+      previousDays:
+          (json['previous_days'] is List && json['previous_days'] != null)
+              ? (json['previous_days'] as List)
+                  .map((e) => PreviousDayModel.fromJson(e))
+                  .toList()
+              : <PreviousDayModel>[],
     );
   }
 }
@@ -273,6 +330,15 @@ extension TodayMissionModelX on TodayMissionModel {
       userGoal: userGoal.toEntity(),
       dayIndex: dayIndex,
       missions: missions.map((m) => m.toEntity()).toList(),
+      previousDays:
+          previousDays
+              .map(
+                (p) => PreviousDayEntity(
+                  dayIndex: p.dayIndex,
+                  isCompleted: p.isCompleted,
+                ),
+              )
+              .toList(),
     );
   }
 }

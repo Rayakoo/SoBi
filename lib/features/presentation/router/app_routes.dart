@@ -12,6 +12,7 @@ class AppRoutes {
   static const String sekolahForm = '/sekolah-form';
   static const String homepage = '/homepage';
   static const String sobiQuran = '/sobi-quran';
+  static const String sobiQuranDetail = '/sobi-quran-detail/:id';
   static const String sobiGoals = '/sobi-goals';
   static const String sobiTime = '/sobi-time';
   static const String profile = '/profile';

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sobi/features/presentation/provider/education_provider.dart';
+import 'package:sobi/features/presentation/provider/sobi-quran_provider.dart';
 import 'features/presentation/router/app_router.dart';
 import 'di/injection_container.dart';
 import 'features/presentation/provider/auth_provider.dart';
@@ -16,6 +18,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => sl<AuthProvider>()),
         ChangeNotifierProvider(create: (_) => sl<SobiGoalsProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<EducationProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<SobiQuranProvider>()),
         // ...provider lain...
       ],
       child: const MyApp(),

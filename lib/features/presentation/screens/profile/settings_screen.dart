@@ -25,6 +25,8 @@ class SettingsScreen extends StatelessWidget {
     final profilePicSize = 100.0;
     final authProvider = Provider.of<AuthProvider>(context);
     final username = authProvider.user?.username ?? '-';
+    final avatar = authProvider.user?.avatar ?? 1;
+    final avatarAsset = 'assets/profil/Profil $avatar.png';
 
     final List<_SettingsMenuItem> menuItems = [
       _SettingsMenuItem(
@@ -123,11 +125,16 @@ class SettingsScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: profilePicSize / 2,
                         backgroundColor: Colors.white,
-                        child: SvgPicture.asset(
-                          'assets/svg/avatar.svg',
-                          width: profilePicSize * 0.7,
-                          height: profilePicSize * 0.7,
-                          fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            profilePicSize / 2,
+                          ),
+                          child: Image.asset(
+                            avatarAsset,
+                            width: profilePicSize * 0.7,
+                            height: profilePicSize * 0.7,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       Positioned(
@@ -275,10 +282,10 @@ class _LogoutConfirmDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'assets/svg/fatimah_sedih.png', // ganti ke svg/png sesuai asset
-              width: 100,
-              height: 100,
+            SvgPicture.asset(
+              'assets/illustration/Fatimah-Sedih.svg', // ganti ke svg/png sesuai asset
+              width: 120,
+              height: 120,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 16),

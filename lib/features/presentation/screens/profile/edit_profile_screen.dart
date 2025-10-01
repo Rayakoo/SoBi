@@ -22,13 +22,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   int selectedAvatar = 0;
 
-  final List<IconData> avatarIcons = [
-    Icons.person,
-    Icons.person_outline,
-    Icons.account_circle,
-    Icons.face,
-    Icons.tag_faces,
-  ];
+  // Ganti avatarAssets dengan daftar asset avatar
+  final List<String> avatarAssets = List.generate(
+    6,
+    (i) => 'assets/profil/Profil ${i + 1}.png',
+  );
 
   @override
   void initState() {
@@ -37,10 +35,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     namaController = TextEditingController(text: user?.username ?? '');
     usernameController = TextEditingController(text: user?.username ?? '');
     emailController = TextEditingController(text: user?.email ?? '');
-    telpController = TextEditingController(
-      text: '',
-    ); // update jika ada field telp di user
-    // gender = user?.gender ?? 'Akhwat'; // jika ada field gender
+    telpController = TextEditingController(text: user?.phoneNumber ?? '');
+    if (user?.gender != null) {
+      gender = user!.gender!.toLowerCase() == 'male' ? 'Ikhwan' : 'Akhwat';
+    }
+    // avatar: pastikan int
+    if (user?.avatar != null) {
+      final idx = int.tryParse(user!.avatar.toString()) ?? 1;
+      selectedAvatar = (idx - 1).clamp(0, avatarAssets.length - 1);
+    }
   }
 
   @override
@@ -56,6 +59,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     const profilePicSize = 100.0;
+    final user = Provider.of<AuthProvider>(context).user;
+
+    // Avatar asset mapping
+    String avatarAsset = avatarAssets[selectedAvatar];
+
+    // Gender mapping (same as view screen)
+    String genderText = '-';
+    if (user?.gender != null) {
+      genderText = user?.gender?.toLowerCase() == 'male' ? 'Ikhwan' : 'Akhwat';
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -71,6 +84,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       children: [
+                        // Show avatar and username above the form fields
+                        Column(children: [const SizedBox(height: 24)]),
                         _EditProfileField(
                           label: 'Nama',
                           controller: namaController,
@@ -86,9 +101,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           onChanged: (val) => setState(() => gender = val),
                         ),
                         const SizedBox(height: 16),
+                        // Email tidak bisa diubah
                         _EditProfileField(
                           label: 'Email',
                           controller: emailController,
+                          enabled: false,
                         ),
                         const SizedBox(height: 16),
                         _EditProfileField(
@@ -97,7 +114,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         const SizedBox(height: 30),
                         GestureDetector(
-                          onTap: () => context.pop(),
+                          onTap: () async {
+                            final authProvider = Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            );
+                            // Mapping gender ke backend value
+                            String genderValue =
+                                gender == 'Ikhwan' ? 'male' : 'female';
+                            // Avatar index ke int
+                            int avatarValue = selectedAvatar + 1;
+                            await authProvider.updateUserProfile(
+                              username: usernameController.text,
+                              gender: genderValue,
+                              phoneNumber: telpController.text,
+                              avatar: avatarValue,
+                            );
+                            context.pop();
+                          },
                           child: Container(
                             width: double.infinity,
                             height: 56,
@@ -134,70 +168,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          // Foto profil + pilihan avatar
-          Positioned(
-            top: 80,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: profilePicSize / 2,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          avatarIcons[selectedAvatar],
-                          size: profilePicSize * 0.7,
-                          color: AppColors.primary_90,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Pilihan avatar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(avatarIcons.length, (index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedAvatar = index;
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color:
-                                selectedAvatar == index
-                                    ? AppColors.primary_90
-                                    : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          radius: 20,
-                          child: Icon(
-                            avatarIcons[index],
-                            size: 28,
-                            color: AppColors.primary_90,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ),
-
           // Tombol back di kiri atas
           Positioned(
             top: 38,
@@ -225,6 +195,76 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
+          // Foto profil + pilihan avatar
+          Positioned(
+            top: 80,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: profilePicSize / 2,
+                        backgroundColor: Colors.white,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            profilePicSize / 2,
+                          ),
+                          child: Image.asset(
+                            avatarAssets[selectedAvatar],
+                            width: profilePicSize * 0.7,
+                            height: profilePicSize * 0.7,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Pilihan avatar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(avatarAssets.length, (index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedAvatar = index;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                selectedAvatar == index
+                                    ? AppColors.primary_90
+                                    : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 20,
+                          child: Image.asset(
+                            avatarAssets[index],
+                            width: 28,
+                            height: 28,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -234,7 +274,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 class _EditProfileField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
-  const _EditProfileField({required this.label, required this.controller});
+  final bool enabled;
+  const _EditProfileField({
+    required this.label,
+    required this.controller,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +304,7 @@ class _EditProfileField extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextField(
             controller: controller,
+            enabled: enabled,
             style: AppTextStyles.body_3_regular.copyWith(
               color: AppColors.primary_90,
             ),

@@ -9,13 +9,19 @@ abstract class SobiGoalsRepository {
     required String goalCategory,
     required String targetEndDate,
   });
-  Future<List<TodayMissionEntity>> getTodayMission();
+  Future<List<TodayMissionEntity>> getTodayMission({required String date});
   Future<void> completeTask({
     required String userGoalId,
     required String taskId,
     required bool completed,
   });
-  Future<void> getSummaries({required String userGoalId});
+  // Future<void> getSummaries({required String userGoalId});
   Future<String?> getCachedGoalStatus();
   Future<UserGoalEntity?> getCachedGoal();
+  Future<Map<String, dynamic>?> getSummaryData(String userGoalId);
+  Future<void> postSummary({
+    required String userGoalId,
+    required List<String> reflection, // ubah ke List<String>
+    required List<String> selfChanges,
+  });
 }

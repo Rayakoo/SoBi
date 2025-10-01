@@ -20,8 +20,12 @@ class SobiGoalsRepositoryImpl implements SobiGoalsRepository {
   }
 
   @override
-  Future<List<TodayMissionEntity>> getTodayMission() async {
-    final List<TodayMissionModel> result = await datasource.getTodayMission();
+  Future<List<TodayMissionEntity>> getTodayMission({
+    required String date,
+  }) async {
+    final List<TodayMissionModel> result = await datasource.getTodayMission(
+      date: date,
+    );
     return result.map((m) => m.toEntity()).toList();
   }
 
@@ -38,10 +42,7 @@ class SobiGoalsRepositoryImpl implements SobiGoalsRepository {
     );
   }
 
-  @override
-  Future<void> getSummaries({required String userGoalId}) {
-    return datasource.getSummaries(userGoalId: userGoalId);
-  }
+ 
 
   @override
   Future<String?> getCachedGoalStatus() {
@@ -52,5 +53,23 @@ class SobiGoalsRepositoryImpl implements SobiGoalsRepository {
   Future<UserGoalEntity?> getCachedGoal() async {
     final model = await datasource.getCachedGoal();
     return model?.toEntity();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getSummaryData(String userGoalId) async {
+    return await datasource.getSummary(userGoalId: userGoalId);
+  }
+
+  @override
+  Future<void> postSummary({
+    required String userGoalId,
+    required List<String> reflection, // ubah ke List<String>
+    required List<String> selfChanges,
+  }) {
+    return datasource.postSummary(
+      userGoalId: userGoalId,
+      reflection: reflection,
+      selfChanges: selfChanges,
+    );
   }
 }
