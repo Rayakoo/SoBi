@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/surat_model.dart';
 import '../models/surat_detail_model.dart';
 import '../models/tafsir_model.dart';
+import '../models/quran_recommendation_model.dart';
 
 class SobiQuranDatasource {
   final Dio dio;
@@ -31,12 +33,30 @@ class SobiQuranDatasource {
     return null;
   }
 
-  Future<TafsirModel?> getTafsir(int nomor) async {
-    print('[DATASOURCE] getTafsir request: $baseUrl/tafsir/$nomor');
-    final res = await dio.get('$baseUrl/tafsir/$nomor');
-    print('[DATASOURCE] getTafsir response: ${res.data}');
-    if (res.data != null && res.data['data'] != null) {
-      return TafsirModel.fromJson(res.data);
+  // Fungsi baru untuk endpoint tafsir ayat per range
+  Future<AyahTafsirModel?> getAyahTafsir({
+    required int surah,
+    required int ayah,
+  }) async {
+    final base = dotenv.env['BASE_URL'] ?? baseUrl;
+    final url = '$base/rag/detail?surah=$surah&ayah=$ayah';
+    final res = await dio.get(url);
+    if (res.data != null && res.data is Map<String, dynamic>) {
+      return AyahTafsirModel.fromJson(res.data as Map<String, dynamic>);
+    }
+    return null;
+  }
+
+  Future<QuranRecommendationModel?> getQuranRecommendation({
+    required String question,
+  }) async {
+    final base = dotenv.env['BASE_URL'] ?? baseUrl;
+    final url = '$base/rag/qa?q=$question';
+    final res = await dio.get(url);
+    if (res.data != null && res.data is Map<String, dynamic>) {
+      return QuranRecommendationModel.fromJson(
+        res.data as Map<String, dynamic>,
+      );
     }
     return null;
   }

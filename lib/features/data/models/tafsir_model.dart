@@ -15,54 +15,65 @@ class TafsirAyatModel {
   }
 }
 
-class TafsirModel {
-  final int nomor;
-  final String nama;
-  final String namaLatin;
-  final int jumlahAyat;
-  final String tempatTurun;
-  final String arti;
-  final String deskripsi;
-  final List<TafsirAyatModel> tafsir;
 
-  TafsirModel({
-    required this.nomor,
-    required this.nama,
-    required this.namaLatin,
-    required this.jumlahAyat,
-    required this.tempatTurun,
-    required this.arti,
-    required this.deskripsi,
-    required this.tafsir,
+
+
+
+class AyahTafsirItemModel {
+  final int ayah;
+  final List<String> arab;
+  final List<String> indo;
+
+  AyahTafsirItemModel({
+    required this.ayah,
+    required this.arab,
+    required this.indo,
   });
 
-  factory TafsirModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? json;
-    return TafsirModel(
-      nomor: data['nomor'],
-      nama: data['nama'],
-      namaLatin: data['namaLatin'],
-      jumlahAyat: data['jumlahAyat'],
-      tempatTurun: data['tempatTurun'],
-      arti: data['arti'],
-      deskripsi: data['deskripsi'],
-      tafsir:
-          (data['tafsir'] as List)
-              .map((e) => TafsirAyatModel.fromJson(e))
-              .toList(),
+  factory AyahTafsirItemModel.fromJson(Map<String, dynamic> json) {
+    return AyahTafsirItemModel(
+      ayah: json['ayah'],
+      arab: (json['arab'] as List).map((e) => e.toString()).toList(),
+      indo: (json['indo'] as List).map((e) => e.toString()).toList(),
     );
   }
 
-  TafsirEntity toEntity() {
-    return TafsirEntity(
-      nomor: nomor,
-      nama: nama,
-      namaLatin: namaLatin,
-      jumlahAyat: jumlahAyat,
-      tempatTurun: tempatTurun,
-      arti: arti,
-      deskripsi: deskripsi,
-      tafsir: tafsir.map((t) => t.toEntity()).toList(),
+  AyahTafsirItemEntity toEntity() {
+    return AyahTafsirItemEntity(ayah: ayah, arab: arab, indo: indo);
+  }
+}
+
+class AyahTafsirModel {
+  final int surah;
+  final String surahName;
+  final List<AyahTafsirItemModel> items;
+  final String tafsir;
+
+  AyahTafsirModel({
+    required this.surah,
+    required this.surahName,
+    required this.items,
+    required this.tafsir,
+  });
+
+  factory AyahTafsirModel.fromJson(Map<String, dynamic> json) {
+    return AyahTafsirModel(
+      surah: json['surah'],
+      surahName: json['surah_name'],
+      items:
+          (json['items'] as List)
+              .map((e) => AyahTafsirItemModel.fromJson(e))
+              .toList(),
+      tafsir: json['tafsir'] ?? '',
+    );
+  }
+
+  AyahTafsirEntity toEntity() {
+    return AyahTafsirEntity(
+      surah: surah,
+      surahName: surahName,
+      items: items.map((e) => e.toEntity()).toList(),
+      tafsir: tafsir,
     );
   }
 }

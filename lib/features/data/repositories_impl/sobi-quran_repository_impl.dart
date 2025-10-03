@@ -1,3 +1,4 @@
+import 'package:sobi/features/domain/entities/quran_recommendation_entity.dart';
 import 'package:sobi/features/domain/entities/surat_detail_entity.dart';
 import 'package:sobi/features/domain/entities/tafsir_entity.dart';
 
@@ -24,8 +25,19 @@ class SobiQuranRepositoryImpl implements SobiQuranRepository {
   }
 
   @override
-  Future<TafsirEntity?> getTafsir(int nomor) async {
-    final model = await datasource.getTafsir(nomor);
+  Future<AyahTafsirEntity?> getAyahTafsir({
+    required int surah,
+    required int ayah,
+  }) async {
+    final model = await datasource.getAyahTafsir(surah: surah, ayah: ayah);
+    return model?.toEntity();
+  }
+
+  @override
+  Future<QuranRecommendationEntity?> getQuranRecommendation({
+    required String question,
+  }) async {
+    final model = await datasource.getQuranRecommendation(question: question);
     return model?.toEntity();
   }
 }

@@ -1,11 +1,13 @@
 import '../../repositories/sobi-quran_repository.dart';
 import '../../entities/tafsir_entity.dart';
 
-class GetTafsir {
-  final SobiQuranRepository repository;
-  GetTafsir(this.repository);
 
-  Future<TafsirEntity?> call(int nomor) {
-    return repository.getTafsir(nomor);
+
+class GetAyahTafsir {
+  final SobiQuranRepository repository;
+  GetAyahTafsir(this.repository);
+
+  Future<AyahTafsirEntity?> call({required int surah, required int ayah}) {
+    return repository.getAyahTafsir(surah: surah, ayah: ayah);
   }
 }

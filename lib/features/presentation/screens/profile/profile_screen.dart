@@ -10,6 +10,7 @@ import '../../router/app_routes.dart';
 import 'package:provider/provider.dart';
 import '../../provider/auth_provider.dart';
 import 'package:sobi/features/presentation/provider/education_provider.dart';
+import '../../provider/sobi-goals_provider.dart'; // <-- Tambahkan import ini
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -54,12 +55,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profilePicSize = 100.0;
     final educationProvider = Provider.of<EducationProvider>(context);
     final history = educationProvider.educationHistory.take(3).toList();
-    print(
-      '[SCREEN] educationHistory count: ${educationProvider.educationHistory.length}',
-    );
-    for (var i = 0; i < educationProvider.educationHistory.length; i++) {
-      print('[SCREEN] history[$i]: ${educationProvider.educationHistory[i]}');
-    }
+
+    // Ambil data goals
+    final sobiGoalsProvider = Provider.of<SobiGoalsProvider>(context);
+    final goalStatus = sobiGoalsProvider.goalStatus;
+    final todayMissions = sobiGoalsProvider.todayMissions;
+    final missionData = (todayMissions.isNotEmpty) ? todayMissions.first : null;
+    final mission =
+        (missionData != null && missionData.missions.isNotEmpty)
+            ? missionData.missions.first
+            : null;
+    double progress =
+        mission?.progress.completionPercentage != null
+            ? (mission!.progress.completionPercentage! / 100)
+            : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -83,209 +92,193 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Row(
                       children: [
-                        // Progress Harian (CircularPercentIndicator)
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.52,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE6DAF0),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularPercentIndicator(
-                                radius: 60.0,
-                                lineWidth: 10.0,
-                                percent: 0.65,
-                                progressColor: AppColors.primary_90,
-                                backgroundColor: AppColors.primary_30
-                                    .withOpacity(0.3),
-                                circularStrokeCap: CircularStrokeCap.round,
-                                center: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "65%",
-                                      style: AppTextStyles.heading_5_bold
-                                          .copyWith(
-                                            color: AppColors.primary_90,
-                                            fontSize: 22,
-                                          ),
+                        // Card Hijrah (60%)
+                        Expanded(
+                          flex: 6,
+                          child: goalStatus == null
+                              ? GestureDetector(
+                                  onTap: () {
+                                    context.push('/sobigoals');
+                                  },
+                                  child: Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE6DAF0),
+                                      borderRadius: BorderRadius.circular(18),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "Yuk, lengkapi\nProgresmu",
-                                      textAlign: TextAlign.center,
-                                      style: AppTextStyles.body_4_regular
-                                          .copyWith(
-                                            color: AppColors.primary_90,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: 48,
+                                            height: 48,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: AppColors.primary_30,
+                                                width: 2,
+                                                style: BorderStyle.solid,
+                                              ),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(
+                                              Icons.add,
+                                              color: AppColors.primary_50,
+                                              size: 32,
+                                            ),
                                           ),
+                                          const SizedBox(height: 12),
+                                          Text(
+                                            "Mulai Hijrah",
+                                            style: AppTextStyles.body_4_bold.copyWith(
+                                              color: AppColors.primary_90,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Tombol Target Hijrah
-                              ElevatedButton(
-                                onPressed: () {
-                                  // TODO: navigasi ke target hijrah
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary_90,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 0,
-                                    horizontal: 24,
+                                )
+                              : Container(
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE6DAF0),
+                                    borderRadius: BorderRadius.circular(18),
                                   ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  "Target Hijrah",
-                                  style: AppTextStyles.body_4_bold.copyWith(
-                                    color: Colors.white,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(height: 18),
+                                      CircularPercentIndicator(
+                                        radius: 60.0,
+                                        lineWidth: 10.0,
+                                        percent: progress,
+                                        progressColor: AppColors.primary_70,
+                                        backgroundColor: AppColors.primary_30.withOpacity(0.3),
+                                        circularStrokeCap: CircularStrokeCap.round,
+                                        center: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              "${(progress * 100).toInt()}%",
+                                              style: AppTextStyles.heading_5_bold.copyWith(
+                                                color: AppColors.primary_90,
+                                                fontSize: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              "Yuk,\nlengkapi\nprogresmu",
+                                              textAlign: TextAlign.center,
+                                              style: AppTextStyles.body_6_bold.copyWith(
+                                                color: AppColors.primary_90,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      SizedBox(
+                                        width: 130,
+                                        height: 24,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            context.push('/sobigoals');
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.primary_90,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 0,
+                                              horizontal: 24,
+                                            ),
+                                            elevation: 0,
+                                          ),
+                                          child: Text(
+                                            "Target Hijrah",
+                                            style: AppTextStyles.body_5_bold.copyWith(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                         const SizedBox(width: 14),
-                        // Box kanan (surat terakhir & titik belajar)
+                        // Card Bacaan (40%)
                         Expanded(
-                          child: Column(
-                            children: [
-                              // Surat terakhir
-                              GestureDetector(
-                                onTap: () => _goToNavbar(1),
-                                child: Container(
-                                  height: bentoHeight * 0.57,
-                                  width: screenWidth * 0.48,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary_10,
-                                    borderRadius: BorderRadius.circular(18),
+                          flex: 4,
+                          child: Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary_10,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 18.0,
+                                    bottom: 6,
                                   ),
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(width: 12),
-                                      Icon(
-                                        Icons.menu_book,
-                                        color: AppColors.primary_90,
-                                        size: 28,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Al-Maidah : 48',
-                                              style: AppTextStyles.body_4_bold
-                                                  .copyWith(
-                                                    color: AppColors.primary_90,
-                                                  ),
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primary_30,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                'Lanjutkan membaca',
-                                                style: AppTextStyles
-                                                    .body_5_regular
-                                                    .copyWith(
-                                                      color: Colors.white,
-                                                    ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                    ],
+                                  child: Text(
+                                    'Terakhir dibaca',
+                                    style: AppTextStyles.body_5_regular.copyWith(color: AppColors.primary_90),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              // Titik Belajar
-                              GestureDetector(
-                                onTap: () => _goToNavbar(3),
-                                child: Container(
-                                  height: bentoHeight * 0.57,
-                                  width: screenWidth * 0.48,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary_10,
-                                    borderRadius: BorderRadius.circular(18),
+                                Container(
+                                  width: 60,
+                                  height: 2,
+                                  color: AppColors.primary_30,
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                ),
+                                Icon(
+                                  Icons.menu_book,
+                                  color: AppColors.primary_90,
+                                  size: 36,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Al-Ma'idah : 48",
+                                  style: AppTextStyles.body_4_bold.copyWith(
+                                    color: AppColors.primary_90,
                                   ),
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              'Titik Belajar',
-                                              style: AppTextStyles.body_4_bold
-                                                  .copyWith(
-                                                    color: AppColors.primary_90,
-                                                  ),
-                                            ),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.star,
-                                                  color: AppColors.primary_30,
-                                                  size: 18,
-                                                ),
-                                                Icon(
-                                                  Icons.star,
-                                                  color: AppColors.primary_30,
-                                                  size: 18,
-                                                ),
-                                                Icon(
-                                                  Icons.star,
-                                                  color: AppColors.primary_30,
-                                                  size: 18,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  '64 materi',
-                                                  style: AppTextStyles
-                                                      .body_5_regular
-                                                      .copyWith(
-                                                        color:
-                                                            AppColors
-                                                                .primary_90,
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                  textAlign: TextAlign.center,
+                                ),
+                                const Spacer(),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 18.0),
+                                  child: SizedBox(
+                                    width: 130,
+                                    height: 24,
+                                    child: ElevatedButton(
+                                      onPressed: () => _goToNavbar(1),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary_90,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(24),
                                         ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 0,
+                                          horizontal: 24,
+                                        ),
+                                        elevation: 0,
                                       ),
-                                      const SizedBox(width: 12),
-                                    ],
+                                      child: Text(
+                                        "Lanjutkan",
+                                        style: AppTextStyles.body_5_bold.copyWith(color: Colors.white),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -486,11 +479,15 @@ class _RiwayatCard extends StatelessWidget {
           ],
         ),
         child: Row(
+          
           children: [
+            SizedBox(width: 8),
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                bottomLeft: Radius.circular(14),
+                topLeft: Radius.circular(8),
+                bottomLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+                bottomRight: Radius.circular(8)
               ),
               child: Image.network(
                 image,
@@ -563,3 +560,4 @@ String getYoutubeThumbnail(String url) {
     return "https://img.youtube.com/vi/${uri.queryParameters['v']}/hqdefault.jpg";
   }
 }
+                      

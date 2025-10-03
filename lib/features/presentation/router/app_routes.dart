@@ -27,4 +27,6 @@ class AppRoutes {
   static const String pendengarCurhat = '/pendengar-curhat';
   static const String chatRoom = '/chat-room/:role';
   static const String detailPembayaran = '/detail-pembayaran';
+  static const String pembayaranLoading = '/pembayaran-loading';
+  static const String pembayaranBerhasil = '/pembayaran-berhasil';
 }

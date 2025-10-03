@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sobi/features/presentation/provider/sobi-quran_provider.dart';
@@ -18,6 +19,10 @@ class _SobiQuranScreenState extends State<SobiQuranScreen>
   int tabIndex = 0;
   late TabController _tabController;
 
+  // Tambahkan controller dan timer untuk debounce
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
@@ -31,10 +36,50 @@ class _SobiQuranScreenState extends State<SobiQuranScreen>
         tabIndex = _tabController.index;
       });
     });
-    // Fetch surat dari provider
+    // Fetch surat dari provider hanya jika kosong
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SobiQuranProvider>(context, listen: false).fetchSurat();
+      final provider = Provider.of<SobiQuranProvider>(context, listen: false);
+      if (provider.suratList.isEmpty) {
+        provider.fetchSurat();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) async {
+    final provider = Provider.of<SobiQuranProvider>(context, listen: false);
+    if (value.trim().isNotEmpty) {
+      provider.isLoading = true;
+      provider.notifyListeners();
+      debugPrint('[SCREEN] fetchQuranRecommendation: $value');
+      await provider.fetchQuranRecommendation(question: value.trim());
+      debugPrint(
+        '[SCREEN] quranRecommendation (after fetch): ${provider.quranRecommendation}',
+      );
+    } else {
+      provider.quranRecommendation = null;
+      provider.notifyListeners();
+    }
+  }
+
+  // Fungsi utilitas untuk mengubah angka ke angka Arab
+  String arabicNumber(int n) {
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return n.toString().split('').map((d) => arabicDigits[int.parse(d)]).join();
+  }
+
+  // Fungsi untuk menggabungkan ayat-ayat dengan bulatan nomor ayat (angka Arab)
+  String concatAyat(List<dynamic> ayatList) {
+    // diasumsikan ayatList adalah List<Ayat> dengan field .teksArab dan .nomorAyat
+    return ayatList
+        .map((a) => '${a.teksArab}  \u06DD${arabicNumber(a.nomorAyat)}  ')
+        .join(' ');
   }
 
   @override
@@ -42,6 +87,8 @@ class _SobiQuranScreenState extends State<SobiQuranScreen>
     final provider = Provider.of<SobiQuranProvider>(context);
     final suratList = provider.suratList;
     final isLoading = provider.isLoading;
+    final quranRecommendation = provider.quranRecommendation;
+    debugPrint('[SCREEN] quranRecommendation (build): $quranRecommendation');
 
     // Kelompokkan surat per juz (List<int>)
     final Map<int, List<dynamic>> juzMap = {};
@@ -74,6 +121,8 @@ class _SobiQuranScreenState extends State<SobiQuranScreen>
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'search text',
@@ -85,6 +134,136 @@ class _SobiQuranScreenState extends State<SobiQuranScreen>
                 ),
               ),
             ),
+            // Rekomendasi Quran (search result)
+            if (_searchController.text.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.default_10,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child:
+                      provider.isLoading
+                          ? ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: 3,
+                            separatorBuilder:
+                                (_, __) => const Divider(
+                                  height: 1,
+                                  color: AppColors.default_30,
+                                ),
+                            itemBuilder: (context, i) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: double.infinity,
+                                            height: 16,
+                                            color: AppColors.default_30,
+                                            margin: const EdgeInsets.only(
+                                              bottom: 8,
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            height: 12,
+                                            color: AppColors.default_30,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.default_30,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          )
+                          : (quranRecommendation != null &&
+                              quranRecommendation.results.isNotEmpty)
+                          ? ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: quranRecommendation.results.length,
+                            separatorBuilder:
+                                (_, __) => const Divider(
+                                  height: 1,
+                                  color: AppColors.default_30,
+                                ),
+                            itemBuilder: (context, i) {
+                              final item = quranRecommendation.results[i];
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 0,
+                                ),
+                                title: Text(
+                                  item.indo,
+                                  style: AppTextStyles.body_4_bold.copyWith(
+                                    color: AppColors.primary_90,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  'QS. ${item.surahName} : ${item.ayahId}',
+                                  style: AppTextStyles.body_5_regular.copyWith(
+                                    color: AppColors.default_90,
+                                  ),
+                                ),
+                                trailing: const Icon(
+                                  Icons.chevron_right,
+                                  color: AppColors.primary_70,
+                                ),
+                                onTap: () {
+                                  // Halaman = ceil((ayahId-1)/5) + 1
+                                  final page =
+                                      ((item.ayahId - 1) / 5).ceil() + 1;
+                                  debugPrint(
+                                    '[SCREEN] Go to surahId=${item.surah}, ayahId=${item.ayahId}, page=$page',
+                                  );
+                                  context.push(
+                                    '/sobi-quran-detail/${item.surah}?halaman=$page',
+                                  );
+                                },
+                              );
+                            },
+                          )
+                          : Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
+                            ),
+                            child: Text(
+                              'Tidak ada rekomendasi ditemukan',
+                              style: AppTextStyles.body_4_regular.copyWith(
+                                color: AppColors.default_90,
+                              ),
+                            ),
+                          ),
+                ),
+              ),
             const SizedBox(height: 18),
             // Tab bar
             Padding(

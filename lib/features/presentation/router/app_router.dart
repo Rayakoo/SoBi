@@ -25,6 +25,7 @@ import '../screens/homepage/chat_curhat/chat_anonim_screen.dart';
 import '../screens/homepage/chat_curhat/pendengar_curhat_screen.dart';
 import '../screens/homepage/chat_screen.dart';
 import '../screens/homepage/chat_ahli/detail_pembayaran_screen.dart';
+import '../screens/homepage/chat_ahli/pembayaran_loading_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
@@ -161,7 +162,10 @@ class AppRouter {
         path: AppRoutes.chatRoom,
         builder: (context, state) {
           final role = state.params['role'] ?? 'pencerita';
-          return ChatScreen(role: role);
+          final extra = state.extra as Map<String, dynamic>?;
+          final roomId = extra?['roomId'] as String?;
+          final ahli = extra?['ahli'] as Map<String, dynamic>?;
+          return ChatScreen(role: role, roomId: roomId, ahli: ahli);
         },
       ),
       GoRoute(
@@ -183,7 +187,25 @@ class AppRouter {
         path: '/sobi-quran-detail/:id',
         builder: (context, state) {
           final id = int.tryParse(state.params['id'] ?? '') ?? 1;
-          return DetailSobiQuranScreen(suratId: id);
+          // Ambil query parameter halaman dari URL
+          final halamanStr = state.queryParams['halaman'];
+          final halaman =
+              halamanStr != null ? int.tryParse(halamanStr) ?? 1 : 1;
+          return DetailSobiQuranScreen(suratId: id, halaman: halaman);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.pembayaranLoading,
+        builder: (context, state) {
+          final ahli = state.extra as Map<String, dynamic>?;
+          return PembayaranLoadingScreen(ahli: ahli);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.pembayaranBerhasil,
+        builder: (context, state) {
+          final ahli = state.extra as Map<String, dynamic>?;
+          return PembayaranBerhasilScreen(ahli: ahli);
         },
       ),
     ],

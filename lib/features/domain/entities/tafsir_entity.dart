@@ -5,24 +5,30 @@ class TafsirAyatEntity {
   TafsirAyatEntity({required this.ayat, required this.teks});
 }
 
-class TafsirEntity {
-  final int nomor;
-  final String nama;
-  final String namaLatin;
-  final int jumlahAyat;
-  final String tempatTurun;
-  final String arti;
-  final String deskripsi;
-  final List<TafsirAyatEntity> tafsir;
 
-  TafsirEntity({
-    required this.nomor,
-    required this.nama,
-    required this.namaLatin,
-    required this.jumlahAyat,
-    required this.tempatTurun,
-    required this.arti,
-    required this.deskripsi,
+
+class AyahTafsirItemEntity {
+  final int ayah;
+  final List<String> arab;
+  final List<String> indo;
+
+  AyahTafsirItemEntity({
+    required this.ayah,
+    required this.arab,
+    required this.indo,
+  });
+}
+
+class AyahTafsirEntity {
+  final int surah;
+  final String surahName;
+  final List<AyahTafsirItemEntity> items;
+  final String tafsir;
+
+  AyahTafsirEntity({
+    required this.surah,
+    required this.surahName,
+    required this.items,
     required this.tafsir,
   });
 }

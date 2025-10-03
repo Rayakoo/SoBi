@@ -31,7 +31,22 @@ import '../features/domain/repositories/sobi-quran_repository.dart';
 import '../features/domain/usecases/sobi-quran/get_surat.dart';
 import '../features/domain/usecases/sobi-quran/get_surat_detail.dart';
 import '../features/domain/usecases/sobi-quran/get_tafsir.dart';
+import '../features/domain/usecases/sobi-quran/get_quran_recommendation.dart';
 import '../features/presentation/provider/sobi-quran_provider.dart';
+import '../features/data/datasources/ahli_datasources.dart';
+import '../features/data/repositories_impl/chat-ahli_repositories_impl.dart';
+import '../features/domain/repositories/chat-ahli_repository.dart';
+import '../features/domain/usecases/chat-ahli/get_ahli.dart';
+import '../features/presentation/provider/ahli_provider.dart';
+import '../features/data/datasources/chat_datasources.dart';
+import '../features/data/repositories_impl/chat_repositories_impl.dart';
+import '../features/domain/repositories/chat_repository.dart';
+import '../features/domain/usecases/chat/create_room_chat.dart';
+import '../features/domain/usecases/chat/get_rooms_chat.dart';
+import '../features/domain/usecases/chat/get_recent_chat.dart';
+import '../features/domain/usecases/chat/get_room_messages.dart';
+import '../features/domain/usecases/chat/post_message_chat.dart';
+import '../features/presentation/provider/chat_provider.dart';
 
 final sl = GetIt.instance;
 
@@ -106,12 +121,40 @@ void setupDependencyInjection() {
   );
   sl.registerLazySingleton(() => GetSurat(sl()));
   sl.registerLazySingleton(() => GetSuratDetail(sl()));
-  sl.registerLazySingleton(() => GetTafsir(sl()));
+  sl.registerLazySingleton(() => GetAyahTafsir(sl()));
+  sl.registerLazySingleton(() => GetQuranRecommendation(sl()));
   sl.registerFactory(
     () => SobiQuranProvider(
       getSuratUsecase: sl(),
       getSuratDetailUsecase: sl(),
-      getTafsirUsecase: sl(),
+      getAyahTafsirUsecase: sl(),
+      getQuranRecommendationUsecase: sl(),
+    ),
+  );
+
+  // Ahli (Expert)
+  sl.registerLazySingleton<AhliDatasource>(() => AhliDatasource());
+  sl.registerLazySingleton<ChatAhliRepository>(
+    () => ChatAhliRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetAhli(sl()));
+  sl.registerFactory(() => AhliProvider(getAhliUsecase: sl()));
+
+  // Chat
+  sl.registerLazySingleton<ChatDatasource>(() => ChatDatasource());
+  sl.registerLazySingleton<ChatRepository>(() => ChatRepositoryImpl(sl()));
+  sl.registerLazySingleton(() => CreateRoomChat(sl()));
+  sl.registerLazySingleton(() => GetRoomsChat(sl()));
+  sl.registerLazySingleton(() => GetRecentChat(sl()));
+  sl.registerLazySingleton(() => GetRoomMessages(sl()));
+  sl.registerLazySingleton(() => PostMessageChat(sl()));
+  sl.registerFactory(
+    () => ChatProvider(
+      createRoomChatUsecase: sl(),
+      getRoomsChatUsecase: sl(),
+      getRecentChatUsecase: sl(),
+      getRoomMessagesUsecase: sl(),
+      postMessageChatUsecase: sl(),
     ),
   );
 }

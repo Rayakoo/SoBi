@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sobi/features/domain/entities/tafsir_entity.dart';
 import 'package:sobi/features/presentation/provider/sobi-quran_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../style/colors.dart';
 import '../../style/typography.dart';
 
 class DetailSobiQuranScreen extends StatefulWidget {
   final int suratId;
-  const DetailSobiQuranScreen({required this.suratId, Key? key})
+  final int? halaman; // halaman opsional
+
+  const DetailSobiQuranScreen({required this.suratId, this.halaman, Key? key})
     : super(key: key);
 
   @override
@@ -14,7 +18,22 @@ class DetailSobiQuranScreen extends StatefulWidget {
 }
 
 class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
-  int pageIndex = 0;
+  late int pageIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // halaman di-parameterisasi, default ke 1 jika null
+    pageIndex =
+        (widget.halaman != null && widget.halaman! > 0)
+            ? widget.halaman! - 1
+            : 0;
+    debugPrint(
+      '[DETAIL QURAN] initState: suratId=${widget.suratId}, halaman=${widget.halaman}, pageIndex=$pageIndex',
+    );
+    final provider = Provider.of<SobiQuranProvider>(context, listen: false);
+    provider.fetchSuratDetail(widget.suratId);
+  }
 
   List<List<dynamic>> _splitPerPage(List<dynamic> list, int perPage) {
     List<List<dynamic>> pages = [];
@@ -29,11 +48,187 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
     return pages;
   }
 
-  @override
-  void initState() {
-    super.initState();
+  // Fungsi utilitas untuk mengubah angka ke angka Arab
+  String arabicNumber(int n) {
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return n.toString().split('').map((d) => arabicDigits[int.parse(d)]).join();
+  }
+
+  // Fungsi untuk menggabungkan 5 ayat dengan bulatan nomor ayat (angka Arab)
+  String concatAyat(List<dynamic> ayatList) {
+    return ayatList
+        .map((a) => '${a.teksArab}  \u06DD${arabicNumber(a.nomorAyat)}')
+        .join(' ');
+  }
+
+  void _showArtiTafsirSheet(
+    BuildContext context,
+    List<dynamic> ayatList,
+    String? tafsir,
+  ) async {
     final provider = Provider.of<SobiQuranProvider>(context, listen: false);
-    provider.fetchSuratDetail(widget.suratId);
+    final int surah = widget.suratId;
+    // Hitung ayat pertama pada halaman ini (index page dimulai dari 0)
+    final int ayah = (pageIndex * 5) + 1;
+    await provider.fetchAyahTafsir(surah: surah, ayah: ayah);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            final ayahTafsir = provider.ayahTafsir;
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.primary_70,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Stack(
+                children: [
+                  // SVG background di atas
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: SvgPicture.asset(
+                      'assets/svg/slider_top.svg',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 60,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 32,
+                      left: 18,
+                      right: 18,
+                      bottom: 0,
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 60,
+                              height: 6,
+                              margin: const EdgeInsets.only(bottom: 18),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              "Arti Ayat",
+                              style: AppTextStyles.heading_5_bold.copyWith(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          // List ayat dan artinya dari ayahTafsir jika ada, jika tidak fallback ke ayatList
+                          ...(ayahTafsir?.items ?? ayatList).map(
+                            (a) => Padding(
+                              padding: const EdgeInsets.only(bottom: 18),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          // Cek tipe dan ambil field yang sesuai
+                                          a is AyahTafsirItemEntity
+                                              ? (a.arab.join(' '))
+                                              : (a.teksArab ?? ''),
+                                          textAlign: TextAlign.right,
+                                          style: AppTextStyles.heading_5_bold
+                                              .copyWith(
+                                                fontFamily: 'ScheherazadeNew',
+                                                fontSize: 22,
+                                                color: Colors.white,
+                                              ),
+                                          textDirection: TextDirection.rtl,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            arabicNumber(
+                                              a is AyahTafsirItemEntity
+                                                  ? a.ayah
+                                                  : (a.nomorAyat ?? 0),
+                                            ),
+                                            style: AppTextStyles.body_4_bold
+                                                .copyWith(color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    a is AyahTafsirItemEntity
+                                        ? (a.indo.join(' '))
+                                        : (a.teksIndonesia ?? ''),
+                                    style: AppTextStyles.body_4_regular
+                                        .copyWith(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            "Tafsir",
+                            style: AppTextStyles.heading_6_bold.copyWith(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            ayahTafsir?.tafsir ??
+                                tafsir ??
+                                "Keutamaan Membaca Al-Fatihah dalam Salat\n\nAbu Hurairah r.a. berkata ... (dummy tafsir)",
+                            style: AppTextStyles.body_4_regular.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -43,6 +238,21 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
 
     // Split ayat per halaman (5 per halaman)
     final ayatPages = detail == null ? [] : _splitPerPage(detail.ayat, 5);
+    final totalPages = ayatPages.length;
+
+    // Gunakan pageIndex dari parameter, jangan reset ke 0 jika out of range
+    int displayIndex =
+        totalPages > 0 ? (pageIndex.clamp(0, totalPages - 1)) : 0;
+    debugPrint(
+      '[DETAIL QURAN] build: pageIndex=$pageIndex, displayIndex=$displayIndex, totalPages=$totalPages',
+    );
+    if (pageIndex >= totalPages && totalPages > 0) {
+      pageIndex = 0;
+      displayIndex = totalPages - 1;
+      debugPrint(
+        '[DETAIL QURAN] pageIndex reset to 0, displayIndex=$displayIndex',
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -78,112 +288,128 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
       body:
           detail == null
               ? const Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  const SizedBox(height: 12),
-                  // Ayat arab bersambung (per halaman, desain box per ayat) dalam scroll view
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            for (var ayat
-                                in ayatPages.isNotEmpty
-                                    ? ayatPages[pageIndex]
-                                    : [])
-                              Container(
-                                width: double.infinity,
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                  horizontal: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppColors.primary_30,
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary_10.withOpacity(
-                                        0.08,
-                                      ),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Text(
-                                  ayat.teksArab,
-                                  style: AppTextStyles.heading_6_bold.copyWith(
-                                    color: AppColors.primary_90,
-                                    fontFamily: 'ScheherazadeNew',
-                                    fontSize: 24,
-                                  ),
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                          ],
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Kotak ayat gabungan per halaman
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 16,
                         ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.primary_30),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child:
+                            ayatPages.isEmpty
+                                ? const SizedBox()
+                                : Center(
+                                  child: SingleChildScrollView(
+                                    child: Text(
+                                      concatAyat(ayatPages[displayIndex]),
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.heading_4_bold
+                                          .copyWith(
+                                            fontFamily: 'ScheherazadeNew',
+                                            fontSize: 44,
+                                            color: AppColors.primary_90,
+                                            height: 2.1,
+                                          ),
+                                      textDirection: TextDirection.rtl,
+                                    ),
+                                  ),
+                                ),
                       ),
                     ),
-                  ),
-                  // Navigasi halaman custom (seperti gambar, tanpa info halaman)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 32, top: 8),
-                    child: Row(
+                    const SizedBox(height: 18),
+                    // Navigasi halaman (tanpa angka, hanya tombol)
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Tombol kiri = prev (halaman sebelumnya)
+                        ElevatedButton(
+                          onPressed:
+                              pageIndex < totalPages - 1
+                                  ? () {
+                                    setState(() {
+                                      pageIndex++;
+                                    });
+                                  }
+                                  : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary_30,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            elevation: 0,
+                            minimumSize: const Size(54, 54),
+                          ),
+                          child: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 32),
                         ElevatedButton(
                           onPressed:
                               pageIndex > 0
-                                  ? () => setState(() => pageIndex--)
+                                  ? () {
+                                    setState(() {
+                                      pageIndex--;
+                                    });
+                                  }
                                   : null,
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
                             backgroundColor: AppColors.primary_30,
-                            padding: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
                             elevation: 0,
+                            minimumSize: const Size(54, 54),
                           ),
                           child: const Icon(
-                            Icons.arrow_back,
+                            Icons.chevron_right,
                             color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 24),
-                        // Tombol kanan = next (halaman selanjutnya)
-                        ElevatedButton(
-                          onPressed:
-                              pageIndex < ayatPages.length - 1
-                                  ? () => setState(() => pageIndex++)
-                                  : null,
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            backgroundColor: AppColors.primary_30,
-                            padding: const EdgeInsets.all(16),
-                            elevation: 0,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 28,
+                            size: 32,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 32),
+                    // Tombol slider section dengan background SVG
+                    GestureDetector(
+                      onTap: () {
+                        _showArtiTafsirSheet(
+                          context,
+                          ayatPages.isEmpty ? [] : ayatPages[displayIndex],
+                          null,
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/svg/slider_button.svg',
+                            width: 120,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          ),
+                          Text(
+                            "Lihat Arti & Tafsir",
+                            style: AppTextStyles.body_4_bold.copyWith(
+                              color: AppColors.primary_90,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
     );
   }
 }
-    

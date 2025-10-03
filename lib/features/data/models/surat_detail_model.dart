@@ -99,18 +99,15 @@ class SuratDetailModel {
       tempatTurun: data['tempatTurun'],
       arti: data['arti'],
       deskripsi: data['deskripsi'],
-      ayat:
-          (data['ayat'] as List)
-              .map((e) => SuratAyatModel.fromJson(e))
-              .toList(),
-      suratSelanjutnya:
-          data['suratSelanjutnya'] != null
-              ? SuratSimpleModel.fromJson(data['suratSelanjutnya'])
-              : null,
-      suratSebelumnya:
-          data['suratSebelumnya'] != null
-              ? SuratSimpleModel.fromJson(data['suratSebelumnya'])
-              : null,
+      ayat: (data['ayat'] as List)
+          .map((e) => SuratAyatModel.fromJson(e))
+          .toList(),
+      suratSelanjutnya: (data['suratSelanjutnya'] is Map<String, dynamic>)
+          ? SuratSimpleModel.fromJson(data['suratSelanjutnya'])
+          : null,
+      suratSebelumnya: (data['suratSebelumnya'] is Map<String, dynamic>)
+          ? SuratSimpleModel.fromJson(data['suratSebelumnya'])
+          : null,
     );
   }
 
