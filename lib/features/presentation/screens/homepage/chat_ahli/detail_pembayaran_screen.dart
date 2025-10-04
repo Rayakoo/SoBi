@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../style/colors.dart';
 import '../../../style/typography.dart';
 
@@ -31,6 +32,24 @@ class _DetailPembayaranScreenState extends State<DetailPembayaranScreen> {
     debugPrint('[DETAIL PEMBAYARAN] ahli.avatar: ${ahli?['avatar']}');
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()..scale(-1.0, 1.0),
+            child: SvgPicture.asset(
+              'assets/icons/arrow-circle-right.svg',
+              width: 18,
+              height: 18,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary_90,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          onPressed: () {
+            context.pop();
+          },
+        ),
         centerTitle: true,
         title: Text(
           'Detail Pembayaran',
@@ -195,7 +214,7 @@ class _DetailPembayaranScreenState extends State<DetailPembayaranScreen> {
                             context.go('/pembayaran-loading', extra: ahli);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary_30,
+                            backgroundColor: AppColors.primary_90,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

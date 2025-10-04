@@ -29,4 +29,8 @@ class AppRoutes {
   static const String detailPembayaran = '/detail-pembayaran';
   static const String pembayaranLoading = '/pembayaran-loading';
   static const String pembayaranBerhasil = '/pembayaran-berhasil';
+  static const String ahliChatList = '/ahli-chat-list';
+  static const String ahliChat = '/ahli-chat/:id';
+  static const String curhatMatchmaking = '/curhat-matchmaking';
+  static const String curhatChatRoom = '/curhat-chat-room';
 }

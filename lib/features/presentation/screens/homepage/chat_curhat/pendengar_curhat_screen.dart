@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:sobi/features/presentation/provider/curhat_sobi_ws_provider.dart';
 import '../../../style/colors.dart';
 import '../../../style/typography.dart';
 
@@ -164,8 +166,14 @@ class _PendengarCurhatScreenState extends State<PendengarCurhatScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.push('/chat-room/pendengar');
+                  onPressed: () async {
+                    final provider = Provider.of<CurhatSobiWsProvider>(
+                      context,
+                      listen: false,
+                    );
+                    provider.connectWS();
+                    context.push('/curhat-matchmaking'); // <-- navigasi dulu
+                    await provider.findMatch("pendengar", "default");
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary_90,

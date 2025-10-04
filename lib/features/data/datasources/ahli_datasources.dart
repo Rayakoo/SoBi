@@ -19,4 +19,12 @@ class AhliDatasource {
     }
     return [];
   }
+
+  Future<Map<String, dynamic>?> getUserById(String id) async {
+    final res = await dio.get('$baseUrl/user/$id');
+    if (res.data != null && res.data is Map<String, dynamic>) {
+      return res.data as Map<String, dynamic>;
+    }
+    return null;
+  }
 }

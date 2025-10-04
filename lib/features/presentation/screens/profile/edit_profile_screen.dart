@@ -130,7 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               phoneNumber: telpController.text,
                               avatar: avatarValue,
                             );
-                            context.pop();
+                            _showProfileSuccessDialog(context);
                           },
                           child: Container(
                             width: double.infinity,
@@ -174,23 +174,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             left: 28,
             child: GestureDetector(
               onTap: () => context.pop(),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary_10.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.black,
-                  size: 24,
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..scale(-1.0, 1.0),
+                child: SvgPicture.asset(
+                  'assets/icons/arrow-circle-right.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.black,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
             ),
@@ -267,6 +261,75 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showProfileSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              width: 320,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/illustration/Fatimah-Senang.svg',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Berhasil',
+                    style: AppTextStyles.heading_5_bold.copyWith(
+                      color: AppColors.primary_90,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Selamat kamu berhasil mengganti profil',
+                    style: AppTextStyles.body_4_regular.copyWith(
+                      color: AppColors.primary_90,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // tutup dialog
+                        Navigator.of(
+                          context,
+                        ).pop(); // kembali ke screen sebelumnya
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary_30,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Lanjutkan',
+                        style: AppTextStyles.body_4_bold.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
     );
   }
 }

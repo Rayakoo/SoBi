@@ -51,6 +51,8 @@ dependencies:
   percent_indicator: ^4.2.5
   gif: ^2.3.0
   gif_view: ^1.0.3
+  lottie: ^3.3.1
+  web_socket_channel: ^3.0.3
   
 
 
@@ -90,6 +92,7 @@ flutter:
      - assets/homepage/bunga/
      - assets/emoji/
      - assets/profil/
+     - assets/lottie/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -289,7 +289,7 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
           detail == null
               ? const Center(child: CircularProgressIndicator())
               : Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(0),
                 child: Column(
                   children: [
                     // Kotak ayat gabungan per halaman
@@ -314,7 +314,7 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
                                       style: AppTextStyles.heading_4_bold
                                           .copyWith(
                                             fontFamily: 'ScheherazadeNew',
-                                            fontSize: 44,
+                                            fontSize: 32, // kecilkan font arab
                                             color: AppColors.primary_90,
                                             height: 2.1,
                                           ),
@@ -324,7 +324,7 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
                                 ),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 8), // kecilkan jarak ke navigasi
                     // Navigasi halaman (tanpa angka, hanya tombol)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -339,20 +339,21 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
                                   }
                                   : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary_30,
+                            backgroundColor: AppColors.primary_50,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(12), // persegi
                             ),
                             elevation: 0,
-                            minimumSize: const Size(54, 54),
+                            minimumSize: const Size(40, 40), // kecil
+                            padding: EdgeInsets.zero,
                           ),
                           child: const Icon(
                             Icons.chevron_left,
                             color: Colors.white,
-                            size: 32,
+                            size: 18, // kecilkan icon
                           ),
                         ),
-                        const SizedBox(width: 32),
+                        const SizedBox(width: 20), // kecilkan jarak antar tombol
                         ElevatedButton(
                           onPressed:
                               pageIndex > 0
@@ -363,22 +364,25 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
                                   }
                                   : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary_30,
+                            backgroundColor: AppColors.primary_50,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(12), // persegi
                             ),
                             elevation: 0,
-                            minimumSize: const Size(54, 54),
+                            minimumSize: const Size(40, 40), // kecil
+                            padding: EdgeInsets.zero,
                           ),
                           child: const Icon(
                             Icons.chevron_right,
                             color: Colors.white,
-                            size: 32,
+                            size: 18, // kecilkan icon
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(
+                      height: 16,
+                    ), // turunkan agar mepet dengan lihat tafsir
                     // Tombol slider section dengan background SVG
                     GestureDetector(
                       onTap: () {
@@ -388,25 +392,74 @@ class _DetailSobiQuranScreenState extends State<DetailSobiQuranScreen> {
                           null,
                         );
                       },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/svg/slider_button.svg',
-                            width: 120,
-                            height: 48,
-                            fit: BoxFit.cover,
-                          ),
-                          Text(
-                            "Lihat Arti & Tafsir",
-                            style: AppTextStyles.body_4_bold.copyWith(
-                              color: AppColors.primary_90,
+                      child: Container(
+                        width: double.infinity,
+                        height: 80,
+                        margin: EdgeInsets.zero,
+                        padding: EdgeInsets.zero,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            // Kubah SVG paling belakang dan lebih tinggi
+                            Positioned(
+                              top: -10,
+                              left: 0,
+                              right: 0,
+                              child: SvgPicture.asset(
+                                'assets/svg/kubah.svg',
+                                width: 80,
+                                height: 40,
+                                fit: BoxFit.contain,
+                              ),
                             ),
-                          ),
-                        ],
+                            // Kotak ungu dengan rounded top left & right, mentok kanan kiri bawah
+                            Positioned.fill(
+                              top: 20,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary_70,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(18),
+                                    topRight: Radius.circular(18),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Tombol putih di atas kotak, tanpa padding horizontal
+                            Positioned(
+                              top: 32,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    "Lihat Tafsir",
+                                    style: AppTextStyles.body_4_bold.copyWith(
+                                      color: AppColors.primary_90,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
                   ],
                 ),
               ),

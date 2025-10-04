@@ -59,4 +59,12 @@ class ChatRepositoryImpl implements ChatRepository {
     );
     return model.toEntity();
   }
+
+  @override
+  Future<String> sendBotMessage({
+    required String token,
+    required String prompt,
+  }) {
+    return datasource.sendBotMessage(token: token, prompt: prompt);
+  }
 }

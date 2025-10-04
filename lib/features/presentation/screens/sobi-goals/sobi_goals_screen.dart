@@ -831,7 +831,7 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                   const SizedBox(height: 32),
                   // Motivasi
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
                       'Waktu terbaik untuk taat adalah saat kamu memilih untuk memulainya.',
                       style: AppTextStyles.body_3_bold.copyWith(
@@ -842,7 +842,7 @@ class _SobiGoalsScreenState extends State<SobiGoalsScreen> {
                   ),
                   if (selectedGoal != null && selectedDate != null)
                     Padding(
-                      padding: const EdgeInsets.only(top: 20.0, bottom: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(

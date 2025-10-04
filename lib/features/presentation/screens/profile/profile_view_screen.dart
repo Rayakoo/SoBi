@@ -20,7 +20,7 @@ class ProfileViewScreen extends StatelessWidget {
 
     // Avatar asset mapping
     String avatarAsset = 'assets/profil/Profil 1.png';
-    if (user?.avatar != null && user!.avatar!=0) {
+    if (user?.avatar != null && user!.avatar != 0) {
       avatarAsset = 'assets/profil/Profil ${user?.avatar}.png';
     }
 
@@ -179,23 +179,17 @@ class ProfileViewScreen extends StatelessWidget {
             left: 28,
             child: GestureDetector(
               onTap: () => context.pop(),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary_10.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.black,
-                  size: 24,
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..scale(-1.0, 1.0),
+                child: SvgPicture.asset(
+                  'assets/icons/arrow-circle-right.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.black,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
             ),
@@ -333,4 +327,3 @@ class _GenderField extends StatelessWidget {
     );
   }
 }
-

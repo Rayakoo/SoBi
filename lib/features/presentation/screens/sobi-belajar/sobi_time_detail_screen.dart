@@ -120,7 +120,7 @@ class _SobiTimeDetailScreenState extends State<SobiTimeDetailScreen> {
                       children: [
                         // Author
                         Image.asset(
-                          'assets/logo/Logo.png',
+                          'assets/icons/detail_time.png',
                           width: 18,
                           height: 18,
                         ),
@@ -134,7 +134,7 @@ class _SobiTimeDetailScreenState extends State<SobiTimeDetailScreen> {
                         const SizedBox(width: 18),
                         // Duration
                         Image.asset(
-                          'assets/logo/Logo.png',
+                          'assets/icons/durasi.png',
                           width: 18,
                           height: 18,
                         ),

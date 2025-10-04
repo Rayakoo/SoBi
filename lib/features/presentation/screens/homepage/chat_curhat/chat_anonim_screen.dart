@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../style/colors.dart';
 import '../../../style/typography.dart';
+import '../../../provider/curhat_sobi_ws_provider.dart';
+
 
 class ChatAnonimScreen extends StatelessWidget {
   const ChatAnonimScreen({super.key});
@@ -59,8 +62,14 @@ class ChatAnonimScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  context.push('/chat-room/pencerita');
+                onPressed: () async {
+                  final provider = Provider.of<CurhatSobiWsProvider>(
+                    context,
+                    listen: false,
+                  );
+                  provider.connectWS();
+                  await provider.findMatch("pencerita", "default");
+                  context.push('/curhat-matchmaking');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary_90,
@@ -83,3 +92,4 @@ class ChatAnonimScreen extends StatelessWidget {
     );
   }
 }
+

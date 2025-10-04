@@ -1,76 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:sobi/features/data/datasources/auth_datasources.dart';
-import 'package:sobi/features/presentation/provider/chat_provider.dart';
-import '../../style/colors.dart';
-import '../../style/typography.dart';
+import 'package:sobi/features/presentation/provider/curhat_sobi_ws_provider.dart';
+import 'package:sobi/features/presentation/style/colors.dart';
+import 'package:sobi/features/presentation/style/typography.dart';
+import 'package:go_router/go_router.dart';
 
-class ChatScreen extends StatefulWidget {
-  final String role;
-  final String? roomId;
-  final Map<String, dynamic>? ahli;
-  const ChatScreen({super.key, required this.role, this.roomId, this.ahli});
+class CurhatChatScreen extends StatefulWidget {
+  const CurhatChatScreen({super.key});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<CurhatChatScreen> createState() => _CurhatChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _CurhatChatScreenState extends State<CurhatChatScreen> {
   final TextEditingController _messageController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    debugPrint('[CHAT SCREEN] ahli.id: ${widget.ahli?['id']}');
-    if (widget.roomId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        debugPrint(
-          '[CHAT SCREEN] roomId: ${widget.roomId}, ahli.id: ${widget.ahli?['id']}',
-        );
-        final token = await AuthDatasources().getToken() ?? '';
-        final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-        await chatProvider.fetchRoomMessages(
-          token: token,
-          roomId: widget.roomId!,
-        );
-      });
-    }
+  void dispose() {
+    // Tutup websocket saat keluar dari chat screen
+    final provider = Provider.of<CurhatSobiWsProvider>(context, listen: false);
+    provider.closeWS();
+    super.dispose();
   }
 
-  Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
-    if (text.isEmpty || widget.roomId == null) return;
-    final token = await AuthDatasources().getToken() ?? '';
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    await chatProvider.sendMessage(
-      token: token,
-      roomId: widget.roomId!,
-      text: text,
-    );
-    _messageController.clear();
-    // Fetch history chat agar real-time
-    await chatProvider.fetchRoomMessages(token: token, roomId: widget.roomId!);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = Provider.of<CurhatSobiWsProvider>(context, listen: false);
+    provider.handleCurhatScreenLifecycle(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatProvider = Provider.of<ChatProvider>(context);
-    final messages = chatProvider.messages;
+    final chat = Provider.of<CurhatSobiWsProvider>(context);
+    final messages = chat.messages;
 
-    debugPrint('[CHAT SCREEN] ahli object: ${widget.ahli.toString()}');
-    debugPrint('[CHAT SCREEN] ahli.id: ${widget.ahli?['id']}');
-    debugPrint('[CHAT SCREEN] ahli.username: ${widget.ahli?['username']}');
-    debugPrint('[CHAT SCREEN] ahli.avatar: ${widget.ahli?['avatar']}');
     // Group messages by date
     Map<String, List<dynamic>> grouped = {};
     for (var msg in messages) {
-      // Ambil tanggal dari createdAt (format: yyyy-MM-ddTHH:mm:ss)
-      final dateStr = msg.createdAt.split('T').first;
+      final dateStr = (msg['created_at'] ?? '').split('T').first;
       grouped.putIfAbsent(dateStr, () => []).add(msg);
     }
-    // Urutkan tanggal ascending
     final sortedDates = grouped.keys.toList()..sort((a, b) => a.compareTo(b));
 
     String _monthName(int month) {
@@ -92,7 +62,6 @@ class _ChatScreenState extends State<ChatScreen> {
       return months[month];
     }
 
-    // Helper untuk label tanggal
     String getDateLabel(String dateStr) {
       final now = DateTime.now();
       final msgDate = DateTime.tryParse(dateStr) ?? now;
@@ -111,13 +80,13 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
 
-    String formatTime(String createdAt) {
-      // Format jam:menit dari createdAt
+    String formatTime(String? createdAt) {
       try {
+        if (createdAt == null) return '';
         final dt = DateTime.parse(createdAt);
         return '${dt.hour.toString().padLeft(2, '0')}.${dt.minute.toString().padLeft(2, '0')}';
       } catch (_) {
-        return createdAt;
+        return createdAt ?? '';
       }
     }
 
@@ -154,19 +123,14 @@ class _ChatScreenState extends State<ChatScreen> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: Colors.white,
-                    child: SvgPicture.asset(
-                      'assets/svg/avatar.svg',
-                      width: 32,
-                      height: 32,
-                      fit: BoxFit.contain,
-                    ),
+                    child: Icon(Icons.person, color: AppColors.primary_90),
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.ahli?['username'] ?? 'User_ahli',
+                        'Curhat Anonim',
                         style: AppTextStyles.heading_6_bold.copyWith(
                           color: AppColors.primary_90,
                         ),
@@ -211,49 +175,56 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     ...msgList.map((msg) {
-                      final isMe = msg.isMe;
+                      final isMe = msg['is_me'] == true || msg['isMe'] == true;
                       return Align(
                         alignment:
                             isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          constraints: const BoxConstraints(maxWidth: 260),
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                isMe
-                                    ? AppColors.primary_30
-                                    : AppColors.primary_10,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(isMe ? 16 : 0),
-                              topRight: Radius.circular(isMe ? 0 : 16),
-                              bottomLeft: Radius.circular(16),
-                              bottomRight: Radius.circular(16),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: isMe
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                msg.text,
+                        child: Column(
+                          crossAxisAlignment:
+                              isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              constraints: const BoxConstraints(maxWidth: 260),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isMe
+                                        ? AppColors.primary_30
+                                        : AppColors.primary_10,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(isMe ? 16 : 0),
+                                  topRight: Radius.circular(isMe ? 0 : 16),
+                                  bottomLeft: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                msg['text'] ?? '',
                                 style: AppTextStyles.body_4_regular.copyWith(
                                   color: AppColors.primary_90,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                formatTime(msg.createdAt),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                bottom: 4,
+                              ),
+                              child: Text(
+                                formatTime(msg['created_at'] as String?),
                                 style: AppTextStyles.body_5_bold.copyWith(
                                   color: AppColors.primary_90,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     }).toList(),
@@ -285,7 +256,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       border: InputBorder.none,
                     ),
-                    onSubmitted: (_) => _sendMessage(),
+                    onSubmitted: (_) {
+                      if (_messageController.text.trim().isNotEmpty) {
+                        chat.sendMessage(_messageController.text.trim());
+                        _messageController.clear();
+                      }
+                    },
                   ),
                 ),
                 Icon(Icons.link, color: AppColors.primary_90),
@@ -296,7 +272,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.send, color: AppColors.primary_90),
-                  onPressed: _sendMessage,
+                  onPressed: () {
+                    if (_messageController.text.trim().isNotEmpty) {
+                      chat.sendMessage(_messageController.text.trim());
+                      _messageController.clear();
+                    }
+                  },
                 ),
               ],
             ),

@@ -37,6 +37,7 @@ import '../features/data/datasources/ahli_datasources.dart';
 import '../features/data/repositories_impl/chat-ahli_repositories_impl.dart';
 import '../features/domain/repositories/chat-ahli_repository.dart';
 import '../features/domain/usecases/chat-ahli/get_ahli.dart';
+import '../features/domain/usecases/chat-ahli/get_user_by_id.dart';
 import '../features/presentation/provider/ahli_provider.dart';
 import '../features/data/datasources/chat_datasources.dart';
 import '../features/data/repositories_impl/chat_repositories_impl.dart';
@@ -46,7 +47,14 @@ import '../features/domain/usecases/chat/get_rooms_chat.dart';
 import '../features/domain/usecases/chat/get_recent_chat.dart';
 import '../features/domain/usecases/chat/get_room_messages.dart';
 import '../features/domain/usecases/chat/post_message_chat.dart';
+import '../features/domain/usecases/chat/send_bot_message.dart';
 import '../features/presentation/provider/chat_provider.dart';
+import '../features/data/datasources/curhat_sobi_ws_datasource.dart';
+import '../features/data/repositories_impl/curhat_sobi_ws_repository_impl.dart';
+import '../features/domain/repositories/curhat_sobi_ws_repository.dart';
+import '../features/domain/usecases/curhat_sobi/connect_ws.dart';
+import '../features/domain/usecases/curhat_sobi/find_match.dart';
+import '../features/presentation/provider/curhat_sobi_ws_provider.dart';
 
 final sl = GetIt.instance;
 
@@ -138,7 +146,13 @@ void setupDependencyInjection() {
     () => ChatAhliRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetAhli(sl()));
-  sl.registerFactory(() => AhliProvider(getAhliUsecase: sl()));
+  sl.registerLazySingleton(() => GetUserById(sl()));
+  sl.registerFactory(
+    () => AhliProvider(
+      getAhliUsecase: sl(),
+      getUserByIdUsecase: sl(), // tambahkan ini
+    ),
+  );
 
   // Chat
   sl.registerLazySingleton<ChatDatasource>(() => ChatDatasource());
@@ -148,6 +162,7 @@ void setupDependencyInjection() {
   sl.registerLazySingleton(() => GetRecentChat(sl()));
   sl.registerLazySingleton(() => GetRoomMessages(sl()));
   sl.registerLazySingleton(() => PostMessageChat(sl()));
+  sl.registerLazySingleton(() => SendBotMessage(sl()));
   sl.registerFactory(
     () => ChatProvider(
       createRoomChatUsecase: sl(),
@@ -155,6 +170,24 @@ void setupDependencyInjection() {
       getRecentChatUsecase: sl(),
       getRoomMessagesUsecase: sl(),
       postMessageChatUsecase: sl(),
+      sendBotMessageUsecase: sl(), // <-- tambahkan ini
+    ),
+  );
+
+  // Curhat Sobi WS
+  sl.registerLazySingleton<CurhatSobiWsDatasource>(
+    () => CurhatSobiWsDatasource(),
+  );
+  sl.registerLazySingleton<CurhatSobiWsRepository>(
+    () => CurhatSobiWsRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => ConnectCurhatSobiWS(sl()));
+  sl.registerLazySingleton(() => FindCurhatSobiMatch(sl()));
+  sl.registerFactory(
+    () => CurhatSobiWsProvider(
+      token: '', // Token harus diisi manual saat inisialisasi provider di UI
+      connectWsUsecase: sl(),
+      findMatchUsecase: sl(),
     ),
   );
 }

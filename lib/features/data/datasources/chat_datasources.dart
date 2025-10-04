@@ -48,11 +48,13 @@ class ChatDatasource {
     required String token,
     required String roomId,
   }) async {
+    print('[ChatDatasource] getRoomMessages: token=$token, roomId=$roomId');
     final res = await dio.get(
       '$baseUrl/chat/messages',
       queryParameters: {'room_id': roomId},
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
+    print('[ChatDatasource] getRoomMessages response: ${res.data}');
     return (res.data as List)
         .map((e) => MessageChatModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -69,5 +71,23 @@ class ChatDatasource {
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     return MessageChatModel.fromJson(res.data);
+  }
+
+  Future<String> sendBotMessage({
+    required String token,
+    required String prompt,
+  }) async {
+    final res = await dio.post(
+      '$baseUrl/chat/bot-message',
+      data: {"prompt": prompt},
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    // Debug response dari backend
+    print('[ChatDatasource] sendBotMessage response: ${res.data}');
+    if (res.data is Map<String, dynamic>) {
+      res.data['is_bot'] = true;
+      print('[ChatDatasource] Modified response (added is_bot): ${res.data}');
+    }
+    return res.data['reply'] ?? '';
   }
 }

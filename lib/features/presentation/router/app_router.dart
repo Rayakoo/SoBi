@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sobi/features/presentation/provider/education_provider.dart';
 import 'package:sobi/features/presentation/router/app_routes.dart';
+import 'package:sobi/features/presentation/screens/homepage/chat_curhat/curhat_chat_screen.dart';
+import 'package:sobi/features/presentation/screens/homepage/chat_curhat/curhat_matchmaking_screen.dart';
 import 'package:sobi/features/presentation/screens/homepage/navbar_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -26,6 +28,8 @@ import '../screens/homepage/chat_curhat/pendengar_curhat_screen.dart';
 import '../screens/homepage/chat_screen.dart';
 import '../screens/homepage/chat_ahli/detail_pembayaran_screen.dart';
 import '../screens/homepage/chat_ahli/pembayaran_loading_screen.dart';
+import '../screens/homepage/chat_ahli/ahli_chat_list_screen.dart';
+import '../screens/homepage/chat_ahli/ahli_chat_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
@@ -208,6 +212,27 @@ class AppRouter {
           return PembayaranBerhasilScreen(ahli: ahli);
         },
       ),
+      GoRoute(
+        path: '/ahli-chat-list',
+        builder: (context, state) => const AhliChatListScreen(),
+      ),
+      GoRoute(
+        path: '/ahli-chat',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final roomId = extra?['roomId'] as String? ?? '';
+          final otherUserId = extra?['otherUserId'] as String? ?? '';
+          return AhliChatScreen(roomId: roomId, otherUserId: otherUserId);
+        },
+      ),
+      GoRoute(
+        path: '/curhat-matchmaking',
+        builder: (context, state) => const CurhatMatchmakingScreen(),
+      ),
+      GoRoute(
+        path: '/curhat-chat-room',
+        builder: (context, state) => const CurhatChatScreen(),
+      ),
     ],
     // GoRoute(
     //   // path: AppRoutes.homepage,
@@ -374,6 +399,8 @@ class AppRouter {
     // },
   );
 }
+
+
 
       //         path: AppRoutes.popUpPanggilan,
       //         name: 'popUpPanggilan',

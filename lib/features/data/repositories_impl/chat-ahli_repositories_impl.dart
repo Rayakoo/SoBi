@@ -11,4 +11,9 @@ class ChatAhliRepositoryImpl implements ChatAhliRepository {
     final models = await datasource.getAhli();
     return models.map((m) => m.toEntity()).toList();
   }
+
+  @override
+  Future<Map<String, dynamic>?> getUserById(String id) {
+    return datasource.getUserById(id);
+  }
 }

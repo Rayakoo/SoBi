@@ -86,7 +86,7 @@ class _NavbarScreenState extends State<NavbarScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final navbarHeight = screenHeight * 0.10;
     final floatingSize = screenWidth * 0.16;
-    final chatMenuSize = screenWidth * 0.13;
+    final chatMenuSize = screenWidth * 0.16;
 
     return ValueListenableBuilder<int>(
       valueListenable: NavbarController.currentIndex,
@@ -219,24 +219,33 @@ class _NavbarScreenState extends State<NavbarScreen> {
                       // Menu buttons (show only if open)
                       if (isChatMenuOpen) ...[
                         _ChatMenuButton(
-                          iconAsset: 'assets/icons/globe.svg',
+                          iconAsset: 'assets/svg/sobi_curhat.svg', // chat anonim
                           color: AppColors.secondary_10,
                           onTap: () => _goToChatAnonim(context),
-                          size: chatMenuSize,
+                          size: chatMenuSize*0.8,
                         ),
                         const SizedBox(height: 12),
                         _ChatMenuButton(
-                          iconAsset: 'assets/icons/head.svg',
+                          iconAsset: 'assets/svg/sobi_ai.svg', // chat ahli
                           color: AppColors.secondary_10,
-                          onTap: () => _goToChatAhli(context),
-                          size: chatMenuSize,
+                          onTap: () async {
+                            final authDs = AuthDatasources();
+                            final cachedUser = await authDs.getCachedUser();
+                            final userRole = cachedUser?.userRole;
+                            if (userRole == 'ahli') {
+                              context.push('/ahli-chat-list');
+                            } else {
+                              _goToChatAhli(context);
+                            }
+                          },
+                          size: chatMenuSize*0.8,
                         ),
                         const SizedBox(height: 12),
                         _ChatMenuButton(
-                          iconAsset: 'assets/icons/swirl.svg',
+                          iconAsset: 'assets/svg/sobi_ahli.svg', // sobi ai
                           color: AppColors.secondary_10,
                           onTap: () => _goToSobiAi(context),
-                          size: chatMenuSize,
+                          size: chatMenuSize*0.8,
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -264,9 +273,9 @@ class _NavbarScreenState extends State<NavbarScreen> {
                             ),
                             child: Center(
                               child: SvgPicture.asset(
-                                'assets/icons/chat.svg',
-                                width: chatMenuSize * 0.6,
-                                height: chatMenuSize * 0.6,
+                                'assets/svg/chat.svg', // tombol utama chat menu
+                                width: chatMenuSize * 0.55,
+                                height: chatMenuSize * 0.55,
                                 colorFilter: const ColorFilter.mode(
                                   Colors.white,
                                   BlendMode.srcIn,

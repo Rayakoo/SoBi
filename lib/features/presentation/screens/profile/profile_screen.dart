@@ -95,118 +95,137 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Card Hijrah (60%)
                         Expanded(
                           flex: 6,
-                          child: goalStatus == null
-                              ? GestureDetector(
-                                  onTap: () {
-                                    context.push('/sobigoals');
-                                  },
-                                  child: Container(
+                          child:
+                              goalStatus == null
+                                  ? GestureDetector(
+                                    onTap: () {
+                                     NavbarController.currentIndex.value = 2;
+                                              context.go('/navbar');
+                                    },
+                                    child: Container(
+                                      height: 200,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE6DAF0),
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      child: Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: 48,
+                                              height: 48,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: AppColors.primary_30,
+                                                  width: 2,
+                                                  style: BorderStyle.solid,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Icon(
+                                                Icons.add,
+                                                color: AppColors.primary_50,
+                                                size: 32,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              "Mulai Hijrah",
+                                              style: AppTextStyles.body_4_bold
+                                                  .copyWith(
+                                                    color: AppColors.primary_90,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  : Container(
                                     height: 200,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFE6DAF0),
                                       borderRadius: BorderRadius.circular(18),
                                     ),
-                                    child: Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            width: 48,
-                                            height: 48,
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: AppColors.primary_30,
-                                                width: 2,
-                                                style: BorderStyle.solid,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(height: 18),
+                                        CircularPercentIndicator(
+                                          radius: 60.0,
+                                          lineWidth: 10.0,
+                                          percent: progress,
+                                          progressColor: AppColors.primary_70,
+                                          backgroundColor: AppColors.primary_30
+                                              .withOpacity(0.3),
+                                          circularStrokeCap:
+                                              CircularStrokeCap.round,
+                                          center: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                "${(progress * 100).toInt()}%",
+                                                style: AppTextStyles
+                                                    .heading_5_bold
+                                                    .copyWith(
+                                                      color:
+                                                          AppColors.primary_90,
+                                                      fontSize: 22,
+                                                    ),
                                               ),
-                                              borderRadius: BorderRadius.circular(12),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "Yuk,\nlengkapi\nprogresmu",
+                                                textAlign: TextAlign.center,
+                                                style: AppTextStyles.body_6_bold
+                                                    .copyWith(
+                                                      color:
+                                                          AppColors.primary_90,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        SizedBox(
+                                          width: 130,
+                                          height: 24,
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              NavbarController.currentIndex.value = 2;
+                                              context.go('/navbar');
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  AppColors.primary_90,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(24),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 0,
+                                                    horizontal: 24,
+                                                  ),
+                                              elevation: 0,
                                             ),
-                                            child: const Icon(
-                                              Icons.add,
-                                              color: AppColors.primary_50,
-                                              size: 32,
+                                            child: Text(
+                                              "Target Hijrah",
+                                              style: AppTextStyles.body_5_bold
+                                                  .copyWith(
+                                                    color: Colors.white,
+                                                  ),
                                             ),
                                           ),
-                                          const SizedBox(height: 12),
-                                          Text(
-                                            "Mulai Hijrah",
-                                            style: AppTextStyles.body_4_bold.copyWith(
-                                              color: AppColors.primary_90,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                )
-                              : Container(
-                                  height: 200,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE6DAF0),
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(height: 18),
-                                      CircularPercentIndicator(
-                                        radius: 60.0,
-                                        lineWidth: 10.0,
-                                        percent: progress,
-                                        progressColor: AppColors.primary_70,
-                                        backgroundColor: AppColors.primary_30.withOpacity(0.3),
-                                        circularStrokeCap: CircularStrokeCap.round,
-                                        center: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              "${(progress * 100).toInt()}%",
-                                              style: AppTextStyles.heading_5_bold.copyWith(
-                                                color: AppColors.primary_90,
-                                                fontSize: 22,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              "Yuk,\nlengkapi\nprogresmu",
-                                              textAlign: TextAlign.center,
-                                              style: AppTextStyles.body_6_bold.copyWith(
-                                                color: AppColors.primary_90,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      SizedBox(
-                                        width: 130,
-                                        height: 24,
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            context.push('/sobigoals');
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.primary_90,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(24),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 0,
-                                              horizontal: 24,
-                                            ),
-                                            elevation: 0,
-                                          ),
-                                          child: Text(
-                                            "Target Hijrah",
-                                            style: AppTextStyles.body_5_bold.copyWith(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                         ),
                         const SizedBox(width: 14),
                         // Card Bacaan (40%)
@@ -228,7 +247,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   child: Text(
                                     'Terakhir dibaca',
-                                    style: AppTextStyles.body_5_regular.copyWith(color: AppColors.primary_90),
+                                    style: AppTextStyles.body_5_regular
+                                        .copyWith(color: AppColors.primary_90),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -262,7 +282,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.primary_90,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(24),
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
                                         ),
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 0,
@@ -272,7 +294,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                       child: Text(
                                         "Lanjutkan",
-                                        style: AppTextStyles.body_5_bold.copyWith(color: Colors.white),
+                                        style: AppTextStyles.body_5_bold
+                                            .copyWith(color: Colors.white),
                                       ),
                                     ),
                                   ),
@@ -418,25 +441,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         context.push(AppRoutes.settings);
                       }
                     },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary_10.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.settings,
-                        color: AppColors.primary_90,
-                        size: 24,
-                      ),
-                    ),
+                    child: SvgPicture.asset(
+                  'assets/icons/setting.svg',
+                  width: 28,
+                  height: 28,
+                  // colorFilter: const ColorFilter.mode(
+                  //   Colors.black,
+                  //   BlendMode.srcIn,
+                  // ),
+                ),
                   ),
             ),
           ),
@@ -479,7 +492,6 @@ class _RiwayatCard extends StatelessWidget {
           ],
         ),
         child: Row(
-          
           children: [
             SizedBox(width: 8),
             ClipRRect(
@@ -487,7 +499,7 @@ class _RiwayatCard extends StatelessWidget {
                 topLeft: Radius.circular(8),
                 bottomLeft: Radius.circular(8),
                 topRight: Radius.circular(8),
-                bottomRight: Radius.circular(8)
+                bottomRight: Radius.circular(8),
               ),
               child: Image.network(
                 image,
@@ -560,4 +572,4 @@ String getYoutubeThumbnail(String url) {
     return "https://img.youtube.com/vi/${uri.queryParameters['v']}/hqdefault.jpg";
   }
 }
-                      
+  

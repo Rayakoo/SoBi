@@ -3,9 +3,11 @@ import 'package:gif/gif.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sobi/features/presentation/provider/auth_provider.dart';
+import 'package:sobi/features/presentation/provider/education_provider.dart';
 import 'package:sobi/features/presentation/style/colors.dart';
 import 'package:sobi/features/presentation/style/typography.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lottie/lottie.dart';
 
 class HomepageScreen extends StatefulWidget {
   const HomepageScreen({super.key});
@@ -133,8 +135,6 @@ class _HomepageScreenState extends State<HomepageScreen> {
         isAnimatingEmotion = true;
       });
 
-     
-
       await Future.delayed(const Duration(milliseconds: 1000));
       setState(() {
         isAnimatingEmotion = false;
@@ -188,6 +188,13 @@ class _HomepageScreenState extends State<HomepageScreen> {
     }
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Ambil 5 edukasi dari provider
+    final educationProvider = Provider.of<EducationProvider>(
+      context,
+      listen: false,
+    );
+    final educations = educationProvider.educations.take(5).toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -200,22 +207,109 @@ class _HomepageScreenState extends State<HomepageScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  // Dummy Slider
+                  // Slider Section: tampilkan 5 edukasi dari SobiTime
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Container(
                       margin: const EdgeInsets.only(top: 8, bottom: 16),
                       height: 122,
+                      // Hapus background ungu
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: AppColors.primary_10,
+                        // color: AppColors.primary_10, // dihapus
                       ),
-                      child: Center(
-                        child: Text(
-                          'Slider Section',
-                          style: AppTextStyles.body_2_bold.copyWith(
-                            color: AppColors.primary_90,
-                          ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(educations.length, (i) {
+                            final edu = educations[i];
+                            final thumbnail = getYoutubeThumbnail(edu.videoUrl);
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  context.push('/education-detail/${edu.id}');
+                                },
+                                child: Container(
+                                  width:
+                                      screenWidth -
+                                      64, // card width sama dengan komponen di bawahnya
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.network(
+                                          thumbnail,
+                                          width: screenWidth - 48,
+                                          height: 160,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => Container(
+                                                color: AppColors.default_30,
+                                                width: screenWidth - 48,
+                                                height: 160,
+                                              ),
+                                        ),
+                                      ),
+                                      // Judul dan tombol "Buka"
+                                      Positioned(
+                                        left: 16,
+                                        right: 16,
+                                        bottom: 16,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Tampilkan judul edukasi
+                                            
+                                            const SizedBox(height: 8),
+                                            Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 6,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withOpacity(0.7),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  'Buka',
+                                                  style: AppTextStyles
+                                                      .body_4_bold
+                                                      .copyWith(
+                                                        color: Colors.white,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ),
                     ),
@@ -233,7 +327,11 @@ class _HomepageScreenState extends State<HomepageScreen> {
                           ),
                         ),
                         Text(
-                          emotionQuestions[currentQuestion],
+                          (selectedEmotion != -1 &&
+                                  currentQuestion ==
+                                      emotionQuestions.length - 1)
+                              ? 'Kamu sudah melakukan kerja bagus hari ini, kembali hijrah untuk besok'
+                              : emotionQuestions[currentQuestion],
                           style: AppTextStyles.body_3_medium.copyWith(
                             color: AppColors.primary_90,
                           ),
@@ -249,37 +347,37 @@ class _HomepageScreenState extends State<HomepageScreen> {
                                         emotionQuestions.length - 1 &&
                                     selectedEmotion != -1);
                             final isSelected = selectedEmotion == index;
-                            return GestureDetector(
-                              onTap:
-                                  isAnswered || isAnimatingEmotion
-                                      ? null
-                                      : () => _onEmotionSelected(index),
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isSelected
-                                          ? AppColors.primary_30
-                                          : AppColors.default_10,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color:
-                                        isSelected
-                                            ? AppColors.primary_90
-                                            : AppColors.default_30,
-                                    width: 2,
+                            final isAnimating =
+                                isSelected && isAnimatingEmotion;
+                            double targetSize;
+                            if (isAnimatingEmotion) {
+                              targetSize = isAnimating ? 80 : 36;
+                            } else {
+                              targetSize = 56;
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              child: GestureDetector(
+                                onTap:
+                                    isAnswered || isAnimatingEmotion
+                                        ? null
+                                        : () => _onEmotionSelected(index),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeInOutCubic,
+                                  width: targetSize,
+                                  height: targetSize,
+                                  child: _EmotionAnimatedImage(
+                                    key: ValueKey(
+                                      '${emotionNames[index]}-$isSelected-$isAnimatingEmotion-$currentQuestion',
+                                    ),
+                                    emotion: emotionNames[index],
+                                    isSelected: isSelected,
+                                    isAnimating: isAnimating,
+                                    size: targetSize,
                                   ),
-                                ),
-                                child: _EmotionAnimatedImage(
-                                  key: ValueKey(
-                                    '${emotionNames[index]}-$isSelected-$isAnimatingEmotion-$currentQuestion',
-                                  ),
-                                  emotion: emotionNames[index],
-                                  isSelected: isSelected,
-                                  isAnimating: isSelected && isAnimatingEmotion,
                                 ),
                               ),
                             );
@@ -475,8 +573,9 @@ class _AnimatedFlowerState extends State<_AnimatedFlower>
   @override
   void initState() {
     super.initState();
+    // Ubah durasi fade animasi pohon jika ingin lebih lama
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 1000), // ini untuk animasi pohon
       vsync: this,
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
@@ -510,11 +609,13 @@ class _EmotionAnimatedImage extends StatefulWidget {
   final String emotion;
   final bool isSelected;
   final bool isAnimating;
+  final double size;
 
   const _EmotionAnimatedImage({
     required this.emotion,
     required this.isSelected,
     required this.isAnimating,
+    required this.size,
     super.key,
   });
 
@@ -524,32 +625,42 @@ class _EmotionAnimatedImage extends StatefulWidget {
 
 class _EmotionAnimatedImageState extends State<_EmotionAnimatedImage>
     with SingleTickerProviderStateMixin {
-  late GifController _controller;
+  late final AnimationController _controller;
+  int _completedCount = 0;
+  static const int _loopCount = 3;
 
   @override
   void initState() {
     super.initState();
-    _controller = GifController(vsync: this);
-    if (widget.isAnimating) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _controller.repeat(min: 0, max: 30, period: const Duration(seconds: 1));
-      });
+    _controller = AnimationController(vsync: this);
+    _controller.addStatusListener(_onStatusChanged);
+  }
+
+  void _onStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _completedCount++;
+      if (_completedCount < _loopCount) {
+        _controller
+          ..reset()
+          ..forward();
+      } else {
+        _controller.stop();
+      }
     }
   }
 
   @override
   void didUpdateWidget(covariant _EmotionAnimatedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isAnimating) {
-      _controller.repeat(min: 0, max: 30, period: const Duration(seconds: 1));
-    } else {
-      _controller.stop();
-      _controller.value = 0;
+    if (widget.isSelected && widget.isAnimating) {
+      _completedCount = 0;
+      _controller.reset();
     }
   }
 
   @override
   void dispose() {
+    _controller.removeStatusListener(_onStatusChanged);
     _controller.dispose();
     super.dispose();
   }
@@ -557,23 +668,38 @@ class _EmotionAnimatedImageState extends State<_EmotionAnimatedImage>
   @override
   Widget build(BuildContext context) {
     if (widget.isSelected && widget.isAnimating) {
-      return Gif(
-        key: UniqueKey(),
-        image: AssetImage('assets/emoji/${widget.emotion}.gif'),
+      return Lottie.asset(
+        'assets/lottie/${widget.emotion}.json',
+        width: widget.size,
+        height: widget.size,
+        fit: BoxFit.contain,
         controller: _controller,
-        autostart: Autostart.no,
-        fps: 24,
-        width: 32,
-        height: 32,
+        repeat: false,
+        onLoaded: (composition) {
+          _controller
+            ..duration = composition.duration * 3
+            ..reset()
+            ..forward();
+        },
       );
     } else {
       return Image.asset(
         'assets/emoji/${widget.emotion}.webp',
         key: UniqueKey(),
-        width: 32,
-        height: 32,
+        width: widget.size,
+        height: widget.size,
         fit: BoxFit.contain,
       );
     }
+  }
+}
+
+// Tambahkan fungsi thumbnail youtube jika belum ada
+String getYoutubeThumbnail(String url) {
+  Uri uri = Uri.parse(url);
+  if (uri.host.contains('youtu.be')) {
+    return "https://img.youtube.com/vi/${uri.pathSegments.first}/hqdefault.jpg";
+  } else {
+    return "https://img.youtube.com/vi/${uri.queryParameters['v']}/hqdefault.jpg";
   }
 }

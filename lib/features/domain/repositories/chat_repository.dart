@@ -22,4 +22,9 @@ abstract class ChatRepository {
     required String roomId,
     required String text,
   });
+
+  Future<String> sendBotMessage({
+    required String token,
+    required String prompt,
+  });
 }

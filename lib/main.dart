@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sobi/features/presentation/provider/ahli_provider.dart';
 import 'package:sobi/features/presentation/provider/chat_provider.dart';
+import 'package:sobi/features/presentation/provider/curhat_sobi_ws_provider.dart';
 import 'package:sobi/features/presentation/provider/education_provider.dart';
 import 'package:sobi/features/presentation/provider/sobi-quran_provider.dart';
 import 'features/presentation/router/app_router.dart';
@@ -24,6 +25,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => sl<SobiQuranProvider>()),
         ChangeNotifierProvider(create: (_) => sl<AhliProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ChatProvider>()),
+         ChangeNotifierProvider(create: (_) => sl<CurhatSobiWsProvider>()),
         // ...provider lain...
       ],
       child: const MyApp(),

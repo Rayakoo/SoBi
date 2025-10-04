@@ -35,24 +35,24 @@ class SettingsScreen extends StatelessWidget {
         onTap: () => context.push(AppRoutes.view_profile),
       ),
       _SettingsMenuItem(
-        icon: 'assets/icons/edit.svg',
+        icon: 'assets/icons/edit_profil.png', // ganti ke PNG
         title: 'Edit Profil',
         onTap: () {
           context.push(AppRoutes.edit_profile);
         },
       ),
       _SettingsMenuItem(
-        icon: 'assets/icons/faq.svg',
+        icon: 'assets/icons/mdi_faq.png', // ganti ke PNG
         title: 'FAQ',
         onTap: () => context.push(AppRoutes.faq),
       ),
       _SettingsMenuItem(
-        icon: 'assets/icons/info.svg',
+        icon: 'assets/icons/about.png', // ganti ke PNG
         title: 'Tentang Aplikasi',
         onTap: () => context.push(AppRoutes.about),
       ),
       _SettingsMenuItem(
-        icon: 'assets/icons/logout.svg',
+        icon: 'assets/icons/logout.png', // ganti ke PNG
         title: 'Keluar',
         onTap: () => _showLogoutDialog(context),
         isLogout: true,
@@ -177,23 +177,17 @@ class SettingsScreen extends StatelessWidget {
             left: 28,
             child: GestureDetector(
               onTap: () => context.pop(),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary_10.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.black,
-                  size: 24,
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..scale(-1.0, 1.0),
+                child: SvgPicture.asset(
+                  'assets/icons/arrow-circle-right.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.black,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
             ),
@@ -223,6 +217,7 @@ class _SettingsMenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSvg = item.icon.endsWith('.svg');
     return InkWell(
       onTap: item.onTap,
       child: Padding(
@@ -237,15 +232,23 @@ class _SettingsMenuCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: SvgPicture.asset(
-                  item.icon,
-                  width: 24,
-                  height: 24,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
-                  ),
-                ),
+                child:
+                    isSvg
+                        ? SvgPicture.asset(
+                          item.icon,
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
+                          ),
+                        )
+                        : Image.asset(
+                          item.icon,
+                          width: 24,
+                          height: 24,
+                          color: Colors.white,
+                        ),
               ),
             ),
             const SizedBox(width: 16),
